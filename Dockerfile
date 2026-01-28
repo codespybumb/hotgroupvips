@@ -7,4 +7,7 @@ RUN npm install --omit=dev
 
 COPY . .
 
+# 👇 força generate dentro do container
+RUN npx prisma generate
+
 CMD ["node", "src/server.js"]
