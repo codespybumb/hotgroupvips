@@ -1,0 +1,13 @@
+export const CONFIG = {
+  BOT_TOKEN: "8437193511:AAEkK_5DtgPDNiTvkdoY_hb8yI9Q66Fz8Z0",
+  GROUP_ID: -1003579898334,
+
+  MP_ACCESS_TOKEN: "APP_USR-4238236976690565-012816-b56436b2ccb6f9b6e40c7d4d631098f9-1837916299",
+  MP_PUBLIC_KEY: "APP_USR-7cddfa89-c985-4d0d-87ee-4a5f5c8d7774",
+
+  VALOR_VIP: 29.90,
+  DIAS_VIP: 30,
+
+  PORT: 8080,
+  DATABASE_URL: "postgresql://postgres:kvYDPcnjSbExbeSfxadriIHQWLdzBLEd@postgres.railway.internal:5432/railway"
+}

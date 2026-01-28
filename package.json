@@ -1,0 +1,22 @@
+{
+  "name": "botvip",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.13.4",
+    "express": "^4.22.1",
+    "mercadopago": "^1.5.15",
+    "node-cron": "^3.0.3",
+    "node-telegram-bot-api": "^0.67.0",
+    "prisma": "^7.3.0"
+  },
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
