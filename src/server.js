@@ -17,25 +17,47 @@ app.listen(CONFIG.PORT, () => {
   console.log("🚀 Server rodando na porta", CONFIG.PORT)
 })
 app.post('/webhook', async (req, res) => {
-  console.log('🔥 WEBHOOK RECEBIDO:', req.body);
+  if (process.env.NODE_ENV !== 'production') {
+  payment = {
+    status: 'approved',
+    metadata: {
+      telegramId: '8405584249'
+    }
+  }
+}
 
-  let payment;
+  try {
+    const paymentId = req.body?.data?.id
+    if (!paymentId) {
+      return res.sendStatus(200)
+    }
 
-  if (req.body.data?.id === 'TESTE123') {
-    payment = {
-      status: 'approved',
-      metadata: {
-        telegramId: '8405584249'
+    const payment = await mercadopago.payment.get(paymentId)
+
+    if (payment.body.status === 'approved') {
+      const telegramId = payment.body.metadata?.telegramId
+
+      if (!telegramId) {
+        console.error('❌ telegramId não encontrado no pagamento')
+        return res.sendStatus(200)
       }
-    };
-  } else {
-    payment = await mercadopago.payment.findById(req.body.data.id);
-  }
 
-  if (payment.status === 'approved') {
-    await bot.addChatMember(process.env.GROUP_ID, payment.metadata.telegramId);
-    console.log('✅ Usuário adicionado ao grupo');
-  }
+      // adiciona no grupo
+      await bot.addChatMember(GRUPO_VIP_ID, telegramId)
 
-  res.send('OK');
-});
+      // mensagem de confirmação
+      await bot.sendMessage(
+        telegramId,
+        '✅ Pagamento aprovado! Você foi adicionado ao grupo VIP.'
+      )
+
+      console.log('🔥 Usuário adicionado ao grupo:', telegramId)
+    }
+
+    res.sendStatus(200)
+  } catch (err) {
+    console.error('❌ Erro no webhook:', err)
+    res.sendStatus(500)
+    console.log('🔥 WEBHOOK RECEBIDO:', req.body)
+  }
+})
