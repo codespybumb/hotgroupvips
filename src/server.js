@@ -2,7 +2,7 @@ import express from "express";
 import mercadopago from "mercadopago";
 import bot from "./bot.js";
 
-console.log("🚀 SERVER.JS CARREGADO");
+console.log(":rocket: SERVER.JS CARREGADO");
 
 const app = express();
 app.use(express.json());
@@ -21,7 +21,7 @@ mercadopago.configure({
 
 app.post("/webhook", async (req, res) => {
   try {
-    console.log("🔥 WEBHOOK RECEBIDO:", req.body);
+    console.log(":fire: WEBHOOK RECEBIDO:", req.body);
 
     const paymentId = req.body?.data?.id;
     if (!paymentId) {
@@ -30,12 +30,12 @@ app.post("/webhook", async (req, res) => {
 
     const payment = await mercadopago.payment.findById(paymentId);
 
-    console.log("💰 STATUS:", payment.body.status);
+    console.log(":moneybag: STATUS:", payment.body.status);
 
     if (payment.body.status === "approved") {
       const telegramId = payment.body.metadata.telegramId;
 
-      console.log("👤 Telegram:", telegramId);
+      console.log(":bust_in_silhouette: Telegram:", telegramId);
 
       const invite = await bot.createChatInviteLink(
         process.env.GROUP_ID,
@@ -44,15 +44,15 @@ app.post("/webhook", async (req, res) => {
 
       await bot.sendMessage(
         telegramId,
-        ✅ Pagamento aprovado!\n\nEntre no grupo VIP:\n${invite.invite_link}
+        :white_check_mark: Pagamento aprovado!\n\nEntre no grupo VIP:\n${invite.invite_link}
       );
 
-      console.log("✅ Link enviado");
+      console.log(":white_check_mark: Link enviado");
     }
 
     res.sendStatus(200);
   } catch (err) {
-    console.error("❌ Erro webhook:", err);
+    console.error(":x: Erro webhook:", err);
     res.sendStatus(500);
   }
 });
@@ -64,5 +64,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log("🚀 Server rodando na porta", PORT);
+  console.log(":rocket: Server rodando na porta", PORT);
 });
