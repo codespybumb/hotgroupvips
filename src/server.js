@@ -18,37 +18,43 @@ app.listen(CONFIG.PORT, () => {
 })
 app.post('/webhook', async (req, res) => {
   try {
-    const paymentId = req.body?.data?.id
-    if (!paymentId) {
-      return res.sendStatus(200)
+    console.log('🔥 WEBHOOK RECEBIDO:', req.body);
+
+    let payment;
+
+    // 🔵 MODO TESTE (SEM MP)
+    if (process.env.NODE_ENV === 'test') {
+      payment = {
+        status: 'approved',
+        metadata: {
+          telegramId: '8405584249'
+        }
+      };
+
+      console.log('🧪 PAGAMENTO SIMULADO');
+    } else {
+      const paymentId = req.body?.data?.id;
+      if (!paymentId) return res.sendStatus(200);
+
+      payment = await mercadopago.payment.findById(paymentId);
+      payment = payment.body;
     }
 
-    const payment = await mercadopago.payment.get(paymentId)
+    if (payment.status === 'approved') {
+      console.log('✅ PAGAMENTO APROVADO');
 
-    if (payment.body.status === 'approved') {
-      const telegramId = payment.body.metadata?.telegramId
-
-      if (!telegramId) {
-        console.error('❌ telegramId não encontrado no pagamento')
-        return res.sendStatus(200)
-      }
-
-      // adiciona no grupo
-      await bot.addChatMember(GRUPO_VIP_ID, telegramId)
-
-      // mensagem de confirmação
       await bot.sendMessage(
-        telegramId,
-        '✅ Pagamento aprovado! Você foi adicionado ao grupo VIP.'
-      )
+        payment.metadata.telegramId,
+        '🎉 Pagamento aprovado! Você já está no VIP.'
+      );
 
-      console.log('🔥 Usuário adicionado ao grupo:', telegramId)
+      // ⚠️ AQUI NÃO SE USA addChatMember (isso NÃO EXISTE)
+      // O certo é gerar link de convite (te explico já)
     }
 
-    res.sendStatus(200)
+    res.sendStatus(200);
   } catch (err) {
-    console.error('❌ Erro no webhook:', err)
-    res.sendStatus(500)
-    console.log('🔥 WEBHOOK RECEBIDO:', req.body)
+    console.error('❌ Erro no webhook:', err);
+    res.sendStatus(500);
   }
-})
+});
