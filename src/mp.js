@@ -1,5 +1,5 @@
 import axios from "axios";
-import { MP_ACCESS_TOKEN, VIP_PRICE } from "./config.js";
+import * as config from "./config.js"
 
 const mp = axios.create({
   baseURL: "https://api.mercadopago.com",
