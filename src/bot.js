@@ -1,6 +1,10 @@
 import TelegramBot from "node-telegram-bot-api"
 import * as config from "./config.js"
-import { criarAssinatura } from "./mp.js"
+import { criarPagamento } from "./mp.js"
+
+const pagamento = await criarPagamento({ userId })
+bot.sendMessage(chatId, pagamento.link)
+
 
 console.log("🤖 BOT.JS CARREGADO")
 
@@ -12,7 +16,7 @@ bot.onText(/\/vip/, async (msg) => {
   const chatId = msg.chat.id
 
   try {
-    const link = await criarAssinatura(chatId)
+    const link = await criarPagamento(chatId)
 
     await bot.sendMessage(
       chatId,

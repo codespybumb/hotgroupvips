@@ -1,34 +1,85 @@
-import axios from "axios";
+import axios from "axios"
 import * as config from "./config.js"
+
+// =========================
+// CLIENTE MERCADO PAGO
+// =========================
 
 const mp = axios.create({
   baseURL: "https://api.mercadopago.com",
   headers: {
-    Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
-    "Content-Type": "application/json"
-  }
-});
+    Authorization: `Bearer ${config.MP_ACCESS_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+})
 
-export async function criarAssinatura(userId) {
+// =========================
+// CRIAR PAGAMENTO
+// =========================
+
+export async function criarPagamento({ userId }) {
   try {
-    const response = await mp.post("/checkout/preferences", {
+    const preference = {
       items: [
         {
-          title: "Acesso VIP",
+          title: "Acesso VIP Telegram",
           quantity: 1,
+          unit_price: config.VIP_PRICE,
           currency_id: "BRL",
-          unit_price: VIP_PRICE
-        }
+        },
       ],
+      metadata: {
+        telegram_id: userId,
+      },
       external_reference: String(userId),
-      payment_methods: {
-        excluded_payment_types: [{ id: "ticket" }]
-      }
-    });
+      notification_url: `${config.BASE_URL}/webhook/mp`,
+      auto_return: "approved",
+    }
 
-    return response.data.init_point;
+    const res = await mp.post("/checkout/preferences", preference)
+
+    return {
+      id: res.data.id,
+      link: res.data.init_point,
+    }
   } catch (err) {
-    console.error("❌ ERRO MP:", err.response?.data || err.message);
-    return null;
+    console.error("❌ Erro MP:", err.response?.data || err.message)
+    throw new Error("Erro ao gerar pagamento")
+  }
+}
+
+// =========================
+// PROCESSAR WEBHOOK
+// =========================
+
+export async function processarWebhook(paymentId) {
+  try {
+    const res = await mp.get(`/v1/payments/${paymentId}`)
+    const payment = res.data
+
+    if (payment.status !== "approved") {
+      return null
+    }
+
+    const telegramId = payment.metadata.telegram_id
+    if (!telegramId) {
+      throw new Error("Pagamento sem telegram_id")
+    }
+
+    const agora = new Date()
+    const expiraEm = new Date(
+      agora.getTime() + config.VIP_DAYS * 24 * 60 * 60 * 1000
+    )
+
+    return {
+      telegramId,
+      paymentId: payment.id,
+      status: payment.status,
+      paidAt: agora,
+      expiresAt: expiraEm,
+    }
+  } catch (err) {
+    console.error("❌ Erro webhook MP:", err.response?.data || err.message)
+    throw err
   }
 }
