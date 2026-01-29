@@ -1,15 +1,21 @@
 {
-  "name": "vip-bot",
+  "name": "botvip",
   "version": "1.0.0",
   "type": "module",
-  "main": "src/server.js",
+
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "postinstall": "prisma generate"
   },
+
   "dependencies": {
-    "axios": "^1.6.7",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "@prisma/client": "^5.22.0",
+    "express": "^4.21.2",
+    "mercadopago": "^1.5.17",
     "node-telegram-bot-api": "^0.66.0"
+  },
+
+  "devDependencies": {
+    "prisma": "^5.22.0"
   }
 }
