@@ -2,7 +2,7 @@ import express from "express";
 import bot from "./bot.js";
 import prisma from "./prisma.js";
 import { removeExpiredUsers } from "./jobs/removeExpired.js";
-import PORT from "./config.js";
+import { PORT } from "./config.js";
 
 console.log("🚀 SERVER.JS CARREGADO");
 
@@ -95,8 +95,6 @@ app.post("/webhook", async (req, res) => {
 // =========================
 // SERVER
 // =========================
-
-const PORT = CONFIG.PORT || 8080;
 
 app.listen(PORT, () => {
   console.log("🚀 Server rodando na porta", PORT);
