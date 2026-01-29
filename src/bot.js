@@ -4,7 +4,7 @@ import { criarPagamento } from "./mp.js";
 
 console.log("🤖 BOT.JS CARREGADO");
 
-const bot = TelegramBot(CONFIG.BOT_TOKEN, {
+const bot = new TelegramBot(BOT_TOKEN, {
   polling: {
     interval: 300,
     autoStart: true
