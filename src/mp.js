@@ -1,32 +1,45 @@
-import mercadopago from 'mercadopago'
-import { CONFIG } from './config.js'
+import mercadopago from 'mercadopago';
 
-console.log("🔥 MP.JS CARREGADO")
+console.log('🔥 MP.JS CARREGADO');
 
+// configura o Mercado Pago
 mercadopago.configure({
-  access_token: CONFIG.MP_ACCESS_TOKEN
-})
+  access_token: process.env.MP_ACCESS_TOKEN
+});
 
+/**
+ * Cria um pagamento no Mercado Pago
+ * @param {string} telegramId
+ */
 export async function criarPagamento(telegramId) {
-  console.log("🔥 criarPagamento chamada com:", telegramId)
+  try {
+    console.log('🔥 criarPagamento chamada com:', telegramId);
 
-  const preference = {
-    items: [
-      {
-        title: 'VIP Telegram',
-        quantity: 1,
-        currency_id: 'BRL',
-        unit_price: Number(CONFIG.VALOR_VIP)
-      }
-    ],
-    metadata: {
-      telegramId: telegramId.toString()
-    }
+    const preference = {
+      items: [
+        {
+          title: 'VIP Telegram',
+          quantity: 1,
+          unit_price: Number(process.env.VIP_PRICE || 29.9),
+          currency_id: 'BRL'
+        }
+      ],
+
+      metadata: {
+        telegramId
+      },
+
+      notification_url: `${process.env.DOMAIN}/webhook`
+    };
+
+    const response = await mercadopago.preferences.create(preference);
+
+    console.log('🔥 pagamento criado:', response.body.init_point);
+
+    return response.body.init_point;
+
+  } catch (err) {
+    console.error('❌ Erro ao criar pagamento:', err);
+    throw err;
   }
-
-  const response = await mercadopago.preferences.create(preference)
-
-  console.log("🔥 pagamento criado:", response.body.init_point)
-
-  return response.body
 }

@@ -17,15 +17,6 @@ app.listen(CONFIG.PORT, () => {
   console.log("🚀 Server rodando na porta", CONFIG.PORT)
 })
 app.post('/webhook', async (req, res) => {
-  if (process.env.NODE_ENV !== 'production') {
-  payment = {
-    status: 'approved',
-    metadata: {
-      telegramId: '8405584249'
-    }
-  }
-}
-
   try {
     const paymentId = req.body?.data?.id
     if (!paymentId) {
