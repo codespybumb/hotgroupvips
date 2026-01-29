@@ -8,15 +8,6 @@ mercadopago.configure({
   access_token: process.env.MP_ACCESS_TOKEN
 });
 
-
-const GRUPO_VIP_ID = -1003579898334
-const app = express()
-app.use(express.json())
-
-app.listen(CONFIG.PORT, () => {
-  console.log("🚀 Server rodando na porta", CONFIG.PORT)
-})
-
 app.post("/webhook", async (req, res) => {
   try {
     console.log("🔥 WEBHOOK RECEBIDO:", req.body);
