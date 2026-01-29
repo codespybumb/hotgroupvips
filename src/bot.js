@@ -1,63 +1,32 @@
-import TelegramBot from "node-telegram-bot-api";
-import { BOT_TOKEN, GROUP_ID, VIP_PRICE, VIP_DAYS } from "./config.js";
-import { criarPagamento } from "./mp.js";
+import TelegramBot from "node-telegram-bot-api"
+import config from "./config.js"
+import { criarAssinatura } from "./mp.js"
 
-console.log("🤖 BOT.JS CARREGADO");
+console.log("🤖 BOT.JS CARREGADO")
 
 const bot = new TelegramBot(config.TELEGRAM_TOKEN, {
-  polling: {
-    interval: 300,
-    autoStart: true
-  }
-});
-
-// garante que não vai conflitar com webhook antigo
-await bot.deleteWebHook();
-
-console.log("🤖 BOT INICIALIZADO, POLLING ATIVO");
-
-// =========================
-// /start
-// =========================
-
-bot.onText(/\/start/, async (msg) => {
-  await bot.sendMessage(
-    msg.chat.id,
-    `🔥 BEM-VINDO AO VIP 🔥
-
-Acesso por ${CONFIG.DIAS_VIP} dias
-Valor: R$ ${CONFIG.VALOR_VIP}
-
-Digite /vip para assinar.`
-  );
-});
-
-// =========================
-// /vip
-// =========================
+  polling: true
+})
 
 bot.onText(/\/vip/, async (msg) => {
+  const chatId = msg.chat.id
+
   try {
-    const telegramId = msg.from.id.toString();
-
-    console.log("👤 Criando pagamento para:", telegramId);
-
-    const pagamento = await criarPagamento(telegramId);
+    const link = await criarAssinatura(chatId)
 
     await bot.sendMessage(
-      msg.chat.id,
-      `💳 Pague aqui:\n${pagamento.init_point}`
-    );
+      chatId,
+`🔥 ACESSO VIP 🔥
 
+Valor: R$ ${config.VIP_PRICE}
+Validade: 30 dias
+
+👉 ${link}`
+    )
   } catch (err) {
-    console.error("❌ ERRO MP:", err);
-    await bot.sendMessage(
-      msg.chat.id,
-      "❌ Erro ao gerar pagamento, tente novamente."
-    );
+    console.error(err)
+    bot.sendMessage(chatId, "❌ Erro ao gerar pagamento.")
   }
-});
+})
 
-// =========================
-
-export default bot;
+export default bot
