@@ -1,5 +1,4 @@
 import express from "express";
-import mercadopago from "mercadopago";
 import bot from "./bot.js";
 import prisma from "./prisma.js";
 import { removeExpiredUsers } from "./jobs/removeExpired.js";
