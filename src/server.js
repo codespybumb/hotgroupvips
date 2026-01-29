@@ -16,39 +16,48 @@ app.use(express.json())
 app.listen(CONFIG.PORT, () => {
   console.log("🚀 Server rodando na porta", CONFIG.PORT)
 })
-app.post('/webhook', async (req, res) => {
+
+app.post("/webhook", async (req, res) => {
   try {
-    const paymentId = req.body?.data?.id
+    console.log("🔥 WEBHOOK RECEBIDO:", req.body);
+
+    const paymentId = req.body?.data?.id;
     if (!paymentId) {
-      return res.sendStatus(200)
+      return res.sendStatus(200);
     }
 
-    const payment = await mercadopago.payment.get(paymentId)
+    const payment = await mercadopago.payment.findById(paymentId);
 
-    if (payment.body.status === 'approved') {
-      const telegramId = payment.body.metadata?.telegramId
+    console.log("💰 STATUS:", payment.body.status);
 
-      if (!telegramId) {
-        console.error('❌ telegramId não encontrado no pagamento')
-        return res.sendStatus(200)
-      }
+    if (payment.body.status === "approved") {
+      const telegramId = payment.body.metadata.telegramId;
 
-      // adiciona no grupo
-      await bot.addChatMember(GRUPO_VIP_ID, telegramId)
+      console.log("👤 Telegram:", telegramId);
 
-      // mensagem de confirmação
+      // cria link de convite único
+      const invite = await bot.createChatInviteLink(
+        process.env.GROUP_ID,
+        {
+          member_limit: 1
+        }
+      );
+
       await bot.sendMessage(
         telegramId,
-        '✅ Pagamento aprovado! Você foi adicionado ao grupo VIP.'
-      )
+        `✅ Pagamento aprovado!\n\nEntre no grupo VIP:\n${invite.invite_link}`
+      );
 
-      console.log('🔥 Usuário adicionado ao grupo:', telegramId)
+      console.log("✅ Link enviado pro usuário");
     }
 
-    res.sendStatus(200)
+    res.sendStatus(200);
   } catch (err) {
-    console.error('❌ Erro no webhook:', err)
-    res.sendStatus(500)
-    console.log('🔥 WEBHOOK RECEBIDO:', req.body)
+    console.error("❌ Erro no webhook:", err);
+    res.sendStatus(500);
   }
-})
+});
+
+app.listen(process.env.PORT || 8080, () => {
+  console.log("🚀 Server rodando");
+});
