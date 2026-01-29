@@ -12,15 +12,6 @@ app.listen(CONFIG.PORT, () => {
   console.log("🚀 Server rodando na porta", CONFIG.PORT)
 })
 app.post('/webhook', async (req, res) => {
-  console.log("📥 Webhook recebido:", JSON.stringify(req.body, null, 2));
-
-const payment = {
-  status: "approved",
-  metadata: {
-    telegramId: "8405584249"
-  }
-};
-
   try {
     const paymentId = req.body?.data?.id
     if (!paymentId) {
