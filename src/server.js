@@ -1,12 +1,23 @@
-import './bot.js'   // FORÇA execução
-import express from 'express'
-import { CONFIG } from './config.js'
-import { bot } from './bot.js'
-import mercadopago from 'mercadopago';
+import express from "express";
+import mercadopago from "mercadopago";
+import bot from "./bot.js";
+
+console.log("🚀 SERVER.JS CARREGADO");
+
+const app = express();
+app.use(express.json());
+
+// =========================
+// Mercado Pago config
+// =========================
 
 mercadopago.configure({
   access_token: process.env.MP_ACCESS_TOKEN
 });
+
+// =========================
+// WEBHOOK
+// =========================
 
 app.post("/webhook", async (req, res) => {
   try {
@@ -26,12 +37,9 @@ app.post("/webhook", async (req, res) => {
 
       console.log("👤 Telegram:", telegramId);
 
-      // cria link de convite único
       const invite = await bot.createChatInviteLink(
         process.env.GROUP_ID,
-        {
-          member_limit: 1
-        }
+        { member_limit: 1 }
       );
 
       await bot.sendMessage(
@@ -39,16 +47,22 @@ app.post("/webhook", async (req, res) => {
         `✅ Pagamento aprovado!\n\nEntre no grupo VIP:\n${invite.invite_link}`
       );
 
-      console.log("✅ Link enviado pro usuário");
+      console.log("✅ Link enviado");
     }
 
     res.sendStatus(200);
   } catch (err) {
-    console.error("❌ Erro no webhook:", err);
+    console.error("❌ Erro webhook:", err);
     res.sendStatus(500);
   }
 });
 
-app.listen(process.env.PORT || 8080, () => {
-  console.log("🚀 Server rodando");
+// =========================
+// SERVER
+// =========================
+
+const PORT = process.env.PORT || 8080;
+
+app.listen(PORT, () => {
+  console.log("🚀 Server rodando na porta", PORT);
 });
