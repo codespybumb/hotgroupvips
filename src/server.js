@@ -57,6 +57,22 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
+if (process.env.TEST_MODE === "true") {
+  const telegramId = "8405584249";
+
+  const invite = await bot.createChatInviteLink(
+    process.env.GROUP_ID,
+    { member_limit: 1 }
+  );
+
+  await bot.sendMessage(
+    telegramId,
+    `🧪 TESTE — link VIP:\n${invite.invite_link}`
+  );
+
+  return res.sendStatus(200);
+}
+
 // =========================
 // SERVER
 // =========================
