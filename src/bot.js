@@ -26,41 +26,16 @@ Digite /vip para assinar.`
   )
 })
 
-bot.on('polling_error', err => {
-  console.error("❌ POLLING ERROR:", err.message)
-})
 bot.onText(/\/vip/, async (msg) => {
   try {
-    const preference = {
-      items: [
-        {
-          title: 'Acesso VIP Telegram',
-          quantity: 1,
-          currency_id: 'BRL',
-          unit_price: CONFIG.VALOR_VIP
-        }
-      ],
-      metadata: {
-        telegramId: msg.from.id
-      }
-    }
-
-    const mp = new MercadoPago(CONFIG.MP_ACCESS_TOKEN)
-    const response = await mp.preferences.create(preference)
+    const pagamento = await criarPagamento(msg.from.id)
 
     bot.sendMessage(
       msg.chat.id,
-`💳 ASSINATURA VIP
-
-Acesso por ${CONFIG.DIAS_VIP} dias
-Valor: R$ ${CONFIG.VALOR_VIP}
-
-👉 Pague aqui:
-${response.body.init_point}`
+      `💳 *Assinatura VIP*\n\n👉 Pague no link abaixo:\n${pagamento.init_point}`,
+      { parse_mode: 'Markdown' }
     )
-
-  } catch (err) {
-    console.error(err)
+  } catch (e) {
     bot.sendMessage(msg.chat.id, '❌ Erro ao gerar pagamento, tente novamente.')
   }
 })
