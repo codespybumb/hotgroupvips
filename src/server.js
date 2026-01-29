@@ -1,7 +1,10 @@
 import './bot.js'   // FORÇA execução
 import express from 'express'
 import { CONFIG } from './config.js'
+import { bot } from './bot.js'
 
+
+const GRUPO_VIP_ID = -1003579898334
 const app = express()
 app.use(express.json())
 
@@ -10,34 +13,37 @@ app.listen(CONFIG.PORT, () => {
 })
 app.post('/webhook', async (req, res) => {
   try {
-    console.log('📩 Webhook recebido:', req.body)
-
     const paymentId = req.body?.data?.id
-    if (!paymentId) return res.sendStatus(200)
+    if (!paymentId) {
+      return res.sendStatus(200)
+    }
 
     const payment = await mercadopago.payment.get(paymentId)
 
     if (payment.body.status === 'approved') {
-      const telegramId = payment.body.metadata.telegramId
+      const telegramId = payment.body.metadata?.telegramId
 
       if (!telegramId) {
-        console.log('❌ telegramId não encontrado')
+        console.error('❌ telegramId não encontrado no pagamento')
         return res.sendStatus(200)
       }
 
-      // 🔓 AQUI VOCÊ LIBERA O VIP
-      await bot.telegram.sendMessage(
+      // adiciona no grupo
+      await bot.addChatMember(GRUPO_VIP_ID, telegramId)
+
+      // mensagem de confirmação
+      await bot.sendMessage(
         telegramId,
-        '✅ Pagamento aprovado! Você agora é VIP.'
+        '✅ Pagamento aprovado! Você foi adicionado ao grupo VIP.'
       )
 
-      // 👉 opcional: adicionar ao grupo
-      // await bot.telegram.unbanChatMember(GRUPO_ID, telegramId)
+      console.log('🔥 Usuário adicionado ao grupo:', telegramId)
     }
 
     res.sendStatus(200)
   } catch (err) {
     console.error('❌ Erro no webhook:', err)
     res.sendStatus(500)
+    console.log('🔥 WEBHOOK RECEBIDO:', req.body)
   }
 })
