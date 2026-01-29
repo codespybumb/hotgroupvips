@@ -2,7 +2,7 @@ import express from "express";
 import mercadopago from "mercadopago";
 import bot from "./bot.js";
 
-console.log(":rocket: SERVER.JS CARREGADO");
+console.log("🚀 SERVER.JS CARREGADO");
 
 const app = express();
 app.use(express.json());
@@ -21,7 +21,7 @@ mercadopago.configure({
 
 app.post("/webhook", async (req, res) => {
   try {
-    console.log(":fire: WEBHOOK RECEBIDO:", req.body);
+    console.log("🔥 WEBHOOK RECEBIDO:", req.body);
 
     const paymentId = req.body?.data?.id;
     if (!paymentId) {
@@ -30,12 +30,17 @@ app.post("/webhook", async (req, res) => {
 
     const payment = await mercadopago.payment.findById(paymentId);
 
-    console.log(":moneybag: STATUS:", payment.body.status);
+    console.log("💰 STATUS:", payment.body.status);
 
     if (payment.body.status === "approved") {
-      const telegramId = payment.body.metadata.telegramId;
+      const telegramId = payment.body.metadata?.telegramId;
 
-      console.log(":bust_in_silhouette: Telegram:", telegramId);
+      if (!telegramId) {
+        console.log("⚠️ Sem telegramId no metadata");
+        return res.sendStatus(200);
+      }
+
+      console.log("👤 Telegram:", telegramId);
 
       const invite = await bot.createChatInviteLink(
         process.env.GROUP_ID,
@@ -44,15 +49,15 @@ app.post("/webhook", async (req, res) => {
 
       await bot.sendMessage(
         telegramId,
-        :white_check_mark: Pagamento aprovado!\n\nEntre no grupo VIP:\n${invite.invite_link}
+        `✅ Pagamento aprovado!\n\nEntre no grupo VIP:\n${invite.invite_link}`
       );
 
-      console.log(":white_check_mark: Link enviado");
+      console.log("✅ Link enviado");
     }
 
     res.sendStatus(200);
   } catch (err) {
-    console.error(":x: Erro webhook:", err);
+    console.error("❌ Erro webhook:", err);
     res.sendStatus(500);
   }
 });
@@ -64,5 +69,5 @@ app.post("/webhook", async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log(":rocket: Server rodando na porta", PORT);
+  console.log("🚀 Server rodando na porta", PORT);
 });
