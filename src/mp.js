@@ -10,26 +10,6 @@ mercadopago.configure({
 export async function criarPagamento(telegramId) {
   console.log("🔥 criarPagamento chamada com:", telegramId)
 
-  const preference = {
-    items: [
-      {
-        title: 'VIP Telegram',
-        quantity: 1,
-        currency_id: 'BRL',
-        unit_price: Number(CONFIG.VALOR_VIP)
-      }
-    ],
-    metadata: {
-      telegramId: telegramId.toString()
-    }
-  }
-
-  const response = await mercadopago.preferences.create(preference)
-
-  console.log("🔥 pagamento criado:", response.body.init_point)
-
-  return response.body
-}
 const preference = {
   items: [
     {
@@ -44,3 +24,4 @@ const preference = {
   notification_url: "https://SEU_DOMINIO/webhook",
   sandbox_init_point: true
 };
+
