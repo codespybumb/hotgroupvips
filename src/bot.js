@@ -1,5 +1,6 @@
 import TelegramBot from 'node-telegram-bot-api'
 import { CONFIG } from './config.js'
+import { criarPagamento } from './mp.js'
 
 console.log("🤖 BOT.JS CARREGADO")
 

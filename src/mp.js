@@ -1,6 +1,17 @@
 import fetch from 'node-fetch'
 import { CONFIG } from './config.js'
 
+console.log("🔥 MP.JS CARREGADO")
+
+export async function criarPagamento(telegramId) {
+  console.log("🔥 criarPagamento chamada com:", telegramId)
+
+  // força erro proposital
+  throw new Error("TESTE MP FUNCIONOU")
+}
+
+
+
 export async function criarPagamento(telegramId) {
   try {
     const res = await fetch(
