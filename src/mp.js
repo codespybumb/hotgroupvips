@@ -1,59 +1,32 @@
-import fetch from 'node-fetch'
+import mercadopago from 'mercadopago'
 import { CONFIG } from './config.js'
 
 console.log("🔥 MP.JS CARREGADO")
 
+mercadopago.configure({
+  access_token: CONFIG.MP_ACCESS_TOKEN
+})
+
 export async function criarPagamento(telegramId) {
   console.log("🔥 criarPagamento chamada com:", telegramId)
 
-  // força erro proposital
-  throw new Error("TESTE MP FUNCIONOU")
-}
-
-
-
-export async function criarPagamento(telegramId) {
-  try {
-    const res = await fetch(
-      'https://api.mercadopago.com/checkout/preferences',
+  const preference = {
+    items: [
       {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${CONFIG.MP_ACCESS_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          items: [
-            {
-              title: 'Acesso VIP Telegram',
-              quantity: 1,
-              currency_id: 'BRL',
-              unit_price: CONFIG.VALOR_VIP
-            }
-          ],
-          metadata: {
-            telegramId: telegramId.toString()
-          },
-          back_urls: {
-            success: 'https://google.com',
-            failure: 'https://google.com',
-            pending: 'https://google.com'
-          },
-          auto_return: 'approved'
-        })
+        title: 'VIP Telegram',
+        quantity: 1,
+        currency_id: 'BRL',
+        unit_price: Number(CONFIG.VALOR_VIP)
       }
-    )
-
-    const data = await res.json()
-
-    if (!data.init_point) {
-      console.error('❌ MP RESPONSE:', data)
-      throw new Error('init_point não gerado')
+    ],
+    metadata: {
+      telegramId: telegramId.toString()
     }
-
-    return data
-  } catch (err) {
-    console.error('❌ ERRO MP:', err)
-    throw err
   }
+
+  const response = await mercadopago.preferences.create(preference)
+
+  console.log("🔥 pagamento criado:", response.body.init_point)
+
+  return response.body
 }
