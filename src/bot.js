@@ -29,3 +29,14 @@ Digite /vip para assinar.`
 bot.on('polling_error', err => {
   console.error("❌ POLLING ERROR:", err.message)
 })
+bot.onText(/\/vip/, async (msg) => {
+  const pagamento = await criarPagamento(msg.from.id);
+
+  bot.sendMessage(
+    msg.chat.id,
+    `💳 Assinatura VIP
+
+👉 Pague aqui:
+${pagamento.init_point}`
+  );
+});
