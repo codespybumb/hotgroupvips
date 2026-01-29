@@ -11,19 +11,9 @@ app.use(express.json());
 // Mercado Pago config
 // =========================
 
-if (process.env.MP_ACCESS_TOKEN) {
-  mercadopago.configure({
-    access_token: process.env.MP_ACCESS_TOKEN
-  });
-}
-
-// =========================
-// TEST MODE
-// =========================
-
-const TESTMODE = process.env.TESTMODE === "true";
-
-console.log("🧪 TESTMODE:", TESTMODE);
+mercadopago.configure({
+  access_token: process.env.MP_ACCESS_TOKEN
+});
 
 // =========================
 // WEBHOOK
@@ -33,45 +23,14 @@ app.post("/webhook", async (req, res) => {
   try {
     console.log("🔥 WEBHOOK RECEBIDO:", req.body);
 
-    let payment;
-
-    // =====================
-    // 🧪 MODO TESTE
-    // =====================
-
-    if (TESTMODE) {
-      console.log("🧪 SIMULANDO PAGAMENTO APROVADO");
-
-      payment = {
-        body: {
-          status: "approved",
-          metadata: {
-            telegramId: process.env.TEST_TELEGRAM_ID || "SEU_ID_AQUI"
-          }
-        }
-      };
+    const paymentId = req.body?.data?.id;
+    if (!paymentId) {
+      return res.sendStatus(200);
     }
 
-    // =====================
-    // 💰 MODO REAL
-    // =====================
-
-    else {
-      const paymentId = req.body?.data?.id;
-
-      if (!paymentId) {
-        console.log("⚠️ Sem paymentId");
-        return res.sendStatus(200);
-      }
-
-      payment = await mercadopago.payment.findById(paymentId);
-    }
+    const payment = await mercadopago.payment.findById(paymentId);
 
     console.log("💰 STATUS:", payment.body.status);
-
-    // =====================
-    // APROVADO → ENVIA LINK
-    // =====================
 
     if (payment.body.status === "approved") {
       const telegramId = payment.body.metadata.telegramId;
@@ -85,14 +44,13 @@ app.post("/webhook", async (req, res) => {
 
       await bot.sendMessage(
         telegramId,
-        `✅ Pagamento aprovado!\n\nEntre no grupo VIP:\n${invite.invite_link}`
+        ✅ Pagamento aprovado!\n\nEntre no grupo VIP:\n${invite.invite_link}
       );
 
       console.log("✅ Link enviado");
     }
 
     res.sendStatus(200);
-
   } catch (err) {
     console.error("❌ Erro webhook:", err);
     res.sendStatus(500);
