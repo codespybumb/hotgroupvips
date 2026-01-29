@@ -3,34 +3,20 @@ import { CONFIG } from "./config.js";
 
 console.log("🔥 MP.JS CARREGADO");
 
-// =========================
-// CONFIG MERCADO PAGO
-// =========================
 mercadopago.configure({
   access_token: CONFIG.MP_ACCESS_TOKEN
 });
 
 // =========================
-// DATA NO FORMATO DO MP
+// FUNÇÃO DATA MP (BRASIL)
 // =========================
 function mpDate() {
   const d = new Date();
-  const tzOffset = -d.getTimezoneOffset();
-  const sign = tzOffset >= 0 ? "+" : "-";
 
-  const pad = (n) => String(Math.floor(Math.abs(n))).padStart(2, "0");
+  // força timezone Brasil
+  d.setHours(d.getHours() - 3);
 
-  return (
-    d.getFullYear() +
-    "-" + pad(d.getMonth() + 1) +
-    "-" + pad(d.getDate()) +
-    "T" + pad(d.getHours()) +
-    ":" + pad(d.getMinutes()) +
-    ":" + pad(d.getSeconds()) +
-    ".000" +
-    sign + pad(tzOffset / 60) +
-    ":" + pad(tzOffset % 60)
-  );
+  return d.toISOString().replace("Z", "-03:00");
 }
 
 // =========================
@@ -38,7 +24,7 @@ function mpDate() {
 // =========================
 export async function criarPagamento(telegramId) {
   try {
-    console.log("🔥 criarPagamento chamada com:", telegramId);
+    console.log("👤 Criando pagamento para:", telegramId);
 
     const preapproval = {
       reason: "Assinatura VIP Telegram",
@@ -62,7 +48,7 @@ export async function criarPagamento(telegramId) {
 
     const response = await mercadopago.preapproval.create(preapproval);
 
-    console.log("🔥 assinatura criada:", response.body.init_point);
+    console.log("🔥 Assinatura criada:", response.body.init_point);
 
     return {
       init_point: response.body.init_point,
