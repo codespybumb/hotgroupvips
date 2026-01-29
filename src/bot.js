@@ -41,4 +41,5 @@ bot.onText(/\/vip/, async (msg) => {
     bot.sendMessage(msg.chat.id, "❌ Erro ao gerar pagamento")
   }
 })
+export default bot;
 
