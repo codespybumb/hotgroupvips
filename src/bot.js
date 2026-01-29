@@ -29,13 +29,14 @@ Digite /vip para assinar.`
 bot.onText(/\/vip/, async (msg) => {
   try {
     const pagamento = await criarPagamento(msg.from.id)
+    console.log("PAGAMENTO:", pagamento)
 
     bot.sendMessage(
       msg.chat.id,
-      `💳 *Assinatura VIP*\n\n👉 Pague no link abaixo:\n${pagamento.init_point}`,
-      { parse_mode: 'Markdown' }
+      `💳 Pague aqui:\n${pagamento.init_point}`
     )
-  } catch (e) {
-    bot.sendMessage(msg.chat.id, '❌ Erro ao gerar pagamento, tente novamente.')
+  } catch (err) {
+    console.error("ERRO REAL MP:", err)
+    bot.sendMessage(msg.chat.id, "❌ Erro ao gerar pagamento")
   }
 })
