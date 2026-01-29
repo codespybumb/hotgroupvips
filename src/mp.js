@@ -1,44 +1,34 @@
-// src/mp.js
-import axios from 'axios';
-import { config } from './config.js';
+import axios from "axios";
+import { MP_ACCESS_TOKEN, VIP_PRICE } from "./config.js";
+
+const mp = axios.create({
+  baseURL: "https://api.mercadopago.com",
+  headers: {
+    Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
+    "Content-Type": "application/json"
+  }
+});
 
 export async function criarPagamento(userId) {
   try {
-    if (!config.MP_ACCESS_TOKEN) {
-      throw new Error('MP_ACCESS_TOKEN não definido');
-    }
-
-    const valor = Number(config.VIP_PRICE);
-
-    if (isNaN(valor)) {
-      throw new Error('Valor inválido (NaN)');
-    }
-
-    const pagamento = {
-      transaction_amount: valor,
-      description: `VIP Telegram - ${config.VIP_DAYS} dias`,
-      payment_method_id: 'pix',
-      payer: {
-        email: `user${userId}@telegram.vip`
-      },
-      notification_url: config.WEBHOOK_URL,
-      external_reference: String(userId)
-    };
-
-    const response = await axios.post(
-      'https://api.mercadopago.com/v1/payments',
-      pagamento,
-      {
-        headers: {
-          Authorization: `Bearer ${config.MP_ACCESS_TOKEN}`,
-          'Content-Type': 'application/json'
+    const response = await mp.post("/checkout/preferences", {
+      items: [
+        {
+          title: "Acesso VIP",
+          quantity: 1,
+          currency_id: "BRL",
+          unit_price: VIP_PRICE
         }
+      ],
+      external_reference: String(userId),
+      payment_methods: {
+        excluded_payment_types: [{ id: "ticket" }]
       }
-    );
+    });
 
-    return response.data;
+    return response.data.init_point;
   } catch (err) {
-    console.error('❌ ERRO MP:', err.response?.data || err.message);
+    console.error("❌ ERRO MP:", err.response?.data || err.message);
     return null;
   }
 }
