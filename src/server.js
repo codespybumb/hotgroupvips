@@ -1,6 +1,8 @@
 import express from "express";
 import mercadopago from "mercadopago";
 import bot from "./bot.js";
+import prisma from "./prisma.js";
+import "./cron.js";
 
 console.log("🚀 SERVER.JS CARREGADO");
 
@@ -42,6 +44,28 @@ app.post("/webhook", async (req, res) => {
 
       console.log("👤 Telegram:", telegramId);
 
+      // =========================
+      // SALVAR ASSINATURA
+      // =========================
+
+      const expira = new Date();
+      expira.setDate(expira.getDate() + 30); // assinatura 30 dias
+
+      await prisma.assinatura.upsert({
+        where: { telegramId },
+        update: { expiraEm: expira },
+        create: {
+          telegramId,
+          expiraEm: expira
+        }
+      });
+
+      console.log("📅 Assinatura salva até:", expira);
+
+      // =========================
+      // GERAR LINK DO GRUPO
+      // =========================
+
       const invite = await bot.createChatInviteLink(
         process.env.GROUP_ID,
         { member_limit: 1 }
@@ -61,6 +85,7 @@ app.post("/webhook", async (req, res) => {
     res.sendStatus(500);
   }
 });
+
 
 // =========================
 // SERVER

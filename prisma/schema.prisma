@@ -15,3 +15,9 @@ model VipUser {
   expiresAt   DateTime?
   createdAt   DateTime @default(now())
 }
+model Assinatura {
+  id         Int      @id @default(autoincrement())
+  telegramId String   @unique
+  expiraEm   DateTime
+  criadoEm   DateTime @default(now())
+}

@@ -1,17 +1,34 @@
-import cron from 'node-cron'
-import { prisma, bot } from './bot.js'
-import { CONFIG } from './config.js'
+import prisma from "./prisma.js";
+import bot from "./bot.js";
 
-cron.schedule('0 * * * *', async () => {
-  const expirados = await prisma.vipUser.findMany({
-    where: { expiresAt: { lt: new Date() }, isActive: true }
-  })
+console.log("⏱ CRON ATIVO");
 
-  for (const u of expirados) {
-    await bot.banChatMember(CONFIG.GROUP_ID, Number(u.telegramId))
-    await prisma.vipUser.update({
-      where: { id: u.id },
-      data: { isActive: false }
-    })
+setInterval(async () => {
+  const agora = new Date();
+
+  const vencidos = await prisma.assinatura.findMany({
+    where: {
+      expiraEm: {
+        lt: agora
+      }
+    }
+  });
+
+  for (const user of vencidos) {
+    try {
+      await bot.banChatMember(
+        process.env.GROUP_ID,
+        user.telegramId
+      );
+
+      await prisma.assinatura.delete({
+        where: { telegramId: user.telegramId }
+      });
+
+      console.log("🚫 removido:", user.telegramId);
+    } catch (err) {
+      console.log("erro remover:", err.message);
+    }
   }
-})
+
+}, 1000 * 60 * 60);
