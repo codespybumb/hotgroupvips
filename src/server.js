@@ -2,7 +2,7 @@ import express from "express";
 import bot from "./bot.js";
 import prisma from "./prisma.js";
 import { removeExpiredUsers } from "./jobs/removeExpired.js";
-import { CONFIG } from "./config.js";
+import { PORT } from "./config.js";
 
 console.log("🚀 SERVER.JS CARREGADO");
 
