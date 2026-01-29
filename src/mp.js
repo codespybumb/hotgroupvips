@@ -1,22 +1,48 @@
-import mercadopago from 'mercadopago'
+import fetch from 'node-fetch'
 import { CONFIG } from './config.js'
 
-mercadopago.configure({
-  access_token: CONFIG.MP_ACCESS_TOKEN
-})
-
 export async function criarPagamento(telegramId) {
-  const pref = {
-    items: [{
-      title: 'VIP Telegram',
-      quantity: 1,
-      currency_id: 'BRL',
-      unit_price: CONFIG.VALOR_VIP
-    }],
-    metadata: { telegramId },
-    notification_url: "https://hotgroupvip-production.up.railway.app/webhook"
-  }
+  try {
+    const res = await fetch(
+      'https://api.mercadopago.com/checkout/preferences',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${CONFIG.MP_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          items: [
+            {
+              title: 'Acesso VIP Telegram',
+              quantity: 1,
+              currency_id: 'BRL',
+              unit_price: CONFIG.VALOR_VIP
+            }
+          ],
+          metadata: {
+            telegramId: telegramId.toString()
+          },
+          back_urls: {
+            success: 'https://google.com',
+            failure: 'https://google.com',
+            pending: 'https://google.com'
+          },
+          auto_return: 'approved'
+        })
+      }
+    )
 
-  const res = await mercadopago.preferences.create(pref)
-  return res.body
+    const data = await res.json()
+
+    if (!data.init_point) {
+      console.error('❌ MP RESPONSE:', data)
+      throw new Error('init_point não gerado')
+    }
+
+    return data
+  } catch (err) {
+    console.error('❌ ERRO MP:', err)
+    throw err
+  }
 }
