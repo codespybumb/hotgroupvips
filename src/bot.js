@@ -1,22 +1,18 @@
-import TelegramBot from "node-telegram-bot-api";
-import { PrismaClient } from "@prisma/client";
-import { CONFIG } from "./config.js";
-import { criarPagamento } from "./mp.js";
-
 import TelegramBot from 'node-telegram-bot-api'
+import { CONFIG } from './config.js'
 
-const bot = new TelegramBot(CONFIG.BOT_TOKEN, { polling: false })
-await bot.deleteWebHook()
-
-export const bot = new TelegramBot(CONFIG.BOT_TOKEN, { polling: true })
-
-export const prisma = new PrismaClient();
+console.log("🤖 BOT.JS CARREGADO")
 
 export const bot = new TelegramBot(CONFIG.BOT_TOKEN, {
-  polling: true
-});
+  polling: {
+    interval: 300,
+    autoStart: true
+  }
+})
 
-console.log("🤖 Bot Telegram iniciado");
+bot.deleteWebHook()
+
+console.log("🤖 BOT INICIALIZADO, POLLING ATIVO")
 
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(
@@ -27,17 +23,9 @@ Acesso por ${CONFIG.DIAS_VIP} dias
 Valor: R$ ${CONFIG.VALOR_VIP}
 
 Digite /vip para assinar.`
-  );
-});
+  )
+})
 
-bot.onText(/\/vip/, async (msg) => {
-  const pagamento = await criarPagamento(msg.from.id);
-
-  bot.sendMessage(
-    msg.chat.id,
-    `💳 Assinatura VIP
-
-👉 Pague aqui:
-${pagamento.init_point}`
-  );
-});
+bot.on('polling_error', err => {
+  console.error("❌ POLLING ERROR:", err.message)
+})
