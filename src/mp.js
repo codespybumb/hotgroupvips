@@ -30,3 +30,17 @@ export async function criarPagamento(telegramId) {
 
   return response.body
 }
+const preference = {
+  items: [
+    {
+      title: 'VIP Telegram',
+      quantity: 1,
+      unit_price: 29.9
+    }
+  ],
+  metadata: {
+    telegramId
+  },
+  notification_url: "https://SEU_DOMINIO/webhook",
+  sandbox_init_point: true
+};
