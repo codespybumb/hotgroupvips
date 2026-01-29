@@ -1,4 +1,3 @@
-import prisma from "../prisma.js";
 import bot from "../bot.js";
 
 export async function removeExpiredUsers() {
