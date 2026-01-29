@@ -1,29 +1,76 @@
-import TelegramBot from 'node-telegram-bot-api'
-import { PrismaClient } from '@prisma/client'
-import { CONFIG } from './config.js'
-import { criarPagamento } from './mp.js'
+import TelegramBot from "node-telegram-bot-api";
+import { PrismaClient } from "@prisma/client";
+import { CONFIG } from "./config.js";
+import { criarPagamento } from "./mp.js";
 
-export const prisma = new PrismaClient({
-  datasources: { db: { url: CONFIG.DATABASE_URL } }
-})
+/* ============================
+   PRISMA
+============================ */
+export const prisma = new PrismaClient();
 
-export const bot = new TelegramBot(CONFIG.BOT_TOKEN, { polling: true })
+/* ============================
+   TELEGRAM BOT
+============================ */
+export const bot = new TelegramBot(CONFIG.BOT_TOKEN, {
+  polling: true,
+});
 
-bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id,
-`🔥 BEM-VINDO AO VIP 🔥
+console.log("🤖 Bot iniciando...");
 
-Acesso por ${CONFIG.DIAS_VIP} dias
-Valor: R$ ${CONFIG.VALOR_VIP}
+/* ============================
+   /start
+============================ */
+bot.onText(/\/start/, async (msg) => {
+  const chatId = msg.chat.id;
 
-Digite /vip para assinar.`)
-})
+  await bot.sendMessage(
+    chatId,
+`🔥 *BEM-VINDO AO VIP* 🔥
 
+✅ Acesso por *${CONFIG.DIAS_VIP} dias*
+💰 Valor: *R$ ${CONFIG.VALOR_VIP}*
+
+👉 Digite /vip para assinar agora.`,
+    { parse_mode: "Markdown" }
+  );
+});
+
+/* ============================
+   /vip
+============================ */
 bot.onText(/\/vip/, async (msg) => {
-  const pagamento = await criarPagamento(msg.from.id)
-  bot.sendMessage(msg.chat.id,
-`💳 Assinatura VIP
+  const chatId = msg.chat.id;
+  const telegramId = BigInt(msg.from.id);
 
-👉 Pague aqui:
-${pagamento.init_point}`)
-})
+  try {
+    const pagamento = await criarPagamento(telegramId);
+
+    await bot.sendMessage(
+      chatId,
+`💳 *Assinatura VIP*
+
+👉 Clique para pagar:
+${pagamento.init_point}
+
+⏱ Após o pagamento, o acesso é liberado automaticamente.`,
+      { parse_mode: "Markdown" }
+    );
+
+  } catch (err) {
+    console.error("Erro ao criar pagamento:", err);
+
+    await bot.sendMessage(
+      chatId,
+      "❌ Erro ao gerar pagamento. Tente novamente em alguns minutos."
+    );
+  }
+});
+
+/* ============================
+   KEEP ALIVE / LOG
+============================ */
+bot.on("polling_error", (err) => {
+  console.error("Polling error:", err.message);
+});
+
+console.log("✅ Bot online e escutando mensagens");
