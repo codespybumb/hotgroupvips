@@ -1,19 +1,13 @@
-import dotenv from "dotenv";
+export const CONFIG = {
+  BOT_TOKEN: process.env.BOT_TOKEN,
+  GROUP_ID: Number(process.env.GROUP_ID),
 
-dotenv.config();
+  MP_ACCESS_TOKEN: process.env.MP_ACCESS_TOKEN,
+  MP_PUBLIC_KEY: process.env.MP_PUBLIC_KEY,
 
-export const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
-export const VIP_PRICE = Number(process.env.VIP_PRICE);
-export const VIP_DAYS = Number(process.env.VIP_DAYS);
+  VALOR_VIP: Number(process.env.VALOR_VIP || 29.9),
+  DIAS_VIP: Number(process.env.DIAS_VIP || 30),
 
-if (!MP_ACCESS_TOKEN) {
-  throw new Error("❌ MP_ACCESS_TOKEN não definido no .env");
-}
-
-if (!VIP_PRICE || isNaN(VIP_PRICE)) {
-  throw new Error("❌ VIP_PRICE inválido");
-}
-
-if (!VIP_DAYS || isNaN(VIP_DAYS)) {
-  throw new Error("❌ VIP_DAYS inválido");
-}
+  PORT: Number(process.env.PORT || 8080),
+  DATABASE_URL: process.env.DATABASE_URL
+};
