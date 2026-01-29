@@ -1,5 +1,5 @@
 import TelegramBot from "node-telegram-bot-api"
-import config from "./config.js"
+import * as config from "./config.js"
 import { criarAssinatura } from "./mp.js"
 
 console.log("🤖 BOT.JS CARREGADO")
