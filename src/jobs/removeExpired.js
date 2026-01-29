@@ -1,29 +1,22 @@
-import bot from "../bot.js";
+import bot from "../bot.js"
+import { GROUP_ID } from "../config.js"
+import prisma from "../prisma.js"
 
 export async function removeExpiredUsers() {
-  console.log("⏱ Verificando usuários expirados...");
+  const expirados = await prisma.subscription.findMany({
+    where: { expiresAt: { lt: new Date() } }
+  })
 
-  const expirados = await prisma.assinatura.findMany({
-    where: {
-      expiraEm: {
-        lt: new Date()
-      }
-    }
-  });
-
-  for (const user of expirados) {
+  for (const sub of expirados) {
     try {
-      await bot.banChatMember(process.env.GROUP_ID, Number(user.telegramId));
-      await bot.unbanChatMember(process.env.GROUP_ID, Number(user.telegramId));
+      await bot.banChatMember(GROUP_ID, sub.userId)
+      await bot.unbanChatMember(GROUP_ID, sub.userId)
 
-      await prisma.assinatura.delete({
-        where: { telegramId: user.telegramId }
-      });
+      await prisma.subscription.delete({ where: { id: sub.id } })
 
-      console.log("🚫 Removido:", user.telegramId);
-
+      console.log("❌ Removido:", sub.userId)
     } catch (err) {
-      console.log("⚠️ erro ao remover:", user.telegramId);
+      console.error("Erro ao remover:", err)
     }
   }
 }

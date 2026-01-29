@@ -1,5 +1,5 @@
 import TelegramBot from "node-telegram-bot-api"
-import * as config from "./config.js"
+import { BOT_TOKEN, VIP_PRICE } from "./config.js"
 import { criarPagamento } from "./mp.js"
 
 console.log("🤖 BOT.JS CARREGADO")
@@ -11,8 +11,6 @@ bot.onText(/\/vip/, async (msg) => {
   const userId = msg.from.id
 
   try {
-    console.log("👤 Criando pagamento para:", userId)
-
     const pagamento = await criarPagamento(userId)
 
     await bot.sendMessage(
@@ -20,9 +18,7 @@ bot.onText(/\/vip/, async (msg) => {
       `🔥 BEM-VINDO AO VIP 🔥
 
 Acesso por 30 dias
-Valor: R$ ${VIP_PRICE}
-
-Pague no link abaixo 👇`,
+Valor: R$ ${VIP_PRICE}`,
       {
         reply_markup: {
           inline_keyboard: [[
@@ -32,7 +28,9 @@ Pague no link abaixo 👇`,
       }
     )
   } catch (err) {
-    console.error("❌ Erro ao gerar pagamento:", err)
-    await bot.sendMessage(chatId, "❌ Erro ao gerar pagamento, tente novamente.")
+    console.error(err)
+    await bot.sendMessage(chatId, "❌ Erro ao gerar pagamento.")
   }
 })
+
+export default bot // ⬅️ ⬅️ ⬅️ ISSO AQUI É O QUE FALTAVA
