@@ -6,28 +6,14 @@ console.log("🔥 MP.JS CARREGADO");
 // =========================
 // CONFIG MERCADO PAGO
 // =========================
-
 mercadopago.configure({
   access_token: CONFIG.MP_ACCESS_TOKEN
 });
 
 // =========================
-// CRIAR ASSINATURA RECORRENTE
+// FUNÇÃO AUXILIAR PARA FORMATAR DATA
 // =========================
-
-export async function criarPagamento(telegramId) {
-  try {
-    console.log("🔥 criarPagamento chamada com:", telegramId);
-
-    const preapproval = {
-      reason: "Assinatura VIP Telegram",
-
-      auto_recurring: {
-  frequency: 1,
-  frequency_type: "months",
-  transaction_amount: Number(CONFIG.VALOR_VIP),
-  currency_id: "BRL",
-  start_date: mpDate()
+function mpDate() {
   const d = new Date();
   const tzOffset = -d.getTimezoneOffset();
   const sign = tzOffset >= 0 ? "+" : "-";
@@ -35,30 +21,41 @@ export async function criarPagamento(telegramId) {
 
   return (
     d.getFullYear() + "-" +
-    pad(d.getMonth()+1) + "-" +
+    pad(d.getMonth() + 1) + "-" +
     pad(d.getDate()) + "T" +
     pad(d.getHours()) + ":" +
     pad(d.getMinutes()) + ":" +
     pad(d.getSeconds()) + ".000" +
     sign +
-    pad(tzOffset/60) + ":" +
-    pad(tzOffset%60)
+    pad(tzOffset / 60) + ":" +
+    pad(tzOffset % 60)
   );
 }
 
+// =========================
+// CRIAR ASSINATURA RECORRENTE
+// =========================
+export async function criarPagamento(telegramId) {
+  try {
+    console.log("🔥 criarPagamento chamada com:", telegramId);
+
+    const preapproval = {
+      reason: "Assinatura VIP Telegram",
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months",
+        transaction_amount: Number(CONFIG.VALOR_VIP),
+        currency_id: "BRL",
+        start_date: mpDate()
       },
-
       back_url: CONFIG.BACK_URL || "https://google.com",
-
       payer_email: CONFIG.EMAIL_PADRAO || "teste@teste.com",
-
       metadata: {
         telegramId: telegramId.toString()
       }
     };
 
     const response = await mercadopago.preapproval.create(preapproval);
-    start_date: mpDate()
 
     console.log("🔥 assinatura criada:", response.body.init_point);
 
