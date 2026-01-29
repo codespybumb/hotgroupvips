@@ -3,6 +3,13 @@ import { PrismaClient } from "@prisma/client";
 import { CONFIG } from "./config.js";
 import { criarPagamento } from "./mp.js";
 
+import TelegramBot from 'node-telegram-bot-api'
+
+const bot = new TelegramBot(CONFIG.BOT_TOKEN, { polling: false })
+await bot.deleteWebHook()
+
+export const bot = new TelegramBot(CONFIG.BOT_TOKEN, { polling: true })
+
 export const prisma = new PrismaClient();
 
 export const bot = new TelegramBot(CONFIG.BOT_TOKEN, {
