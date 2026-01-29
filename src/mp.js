@@ -23,11 +23,29 @@ export async function criarPagamento(telegramId) {
       reason: "Assinatura VIP Telegram",
 
       auto_recurring: {
-        frequency: 1,
-        frequency_type: "months",
-        transaction_amount: Number(CONFIG.VALOR_VIP) || 29.9,
-        currency_id: "BRL",
-        start_date: new Date().toISOString()
+  frequency: 1,
+  frequency_type: "months",
+  transaction_amount: Number(CONFIG.VALOR_VIP),
+  currency_id: "BRL",
+  start_date: mpDate()
+  const d = new Date();
+  const tzOffset = -d.getTimezoneOffset();
+  const sign = tzOffset >= 0 ? "+" : "-";
+  const pad = n => String(Math.floor(Math.abs(n))).padStart(2, "0");
+
+  return (
+    d.getFullYear() + "-" +
+    pad(d.getMonth()+1) + "-" +
+    pad(d.getDate()) + "T" +
+    pad(d.getHours()) + ":" +
+    pad(d.getMinutes()) + ":" +
+    pad(d.getSeconds()) + ".000" +
+    sign +
+    pad(tzOffset/60) + ":" +
+    pad(tzOffset%60)
+  );
+}
+
       },
 
       back_url: CONFIG.BACK_URL || "https://google.com",
@@ -40,6 +58,7 @@ export async function criarPagamento(telegramId) {
     };
 
     const response = await mercadopago.preapproval.create(preapproval);
+    start_date: mpDate()
 
     console.log("🔥 assinatura criada:", response.body.init_point);
 

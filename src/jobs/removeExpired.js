@@ -4,37 +4,27 @@ import bot from "../bot.js";
 export async function removeExpiredUsers() {
   console.log("⏱ Verificando usuários expirados...");
 
-  const expiredUsers = await prisma.user.findMany({
+  const expirados = await prisma.assinatura.findMany({
     where: {
-      status: "active",
-      expiresAt: {
+      expiraEm: {
         lt: new Date()
       }
     }
   });
 
-  console.log("👥 Encontrados:", expiredUsers.length);
-
-  for (const user of expiredUsers) {
+  for (const user of expirados) {
     try {
-      await bot.banChatMember(
-        process.env.GROUP_ID,
-        Number(user.telegramId)
-      );
+      await bot.banChatMember(process.env.GROUP_ID, Number(user.telegramId));
+      await bot.unbanChatMember(process.env.GROUP_ID, Number(user.telegramId));
 
-      await bot.unbanChatMember(
-        process.env.GROUP_ID,
-        Number(user.telegramId)
-      );
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { status: "expired" }
+      await prisma.assinatura.delete({
+        where: { telegramId: user.telegramId }
       });
 
       console.log("🚫 Removido:", user.telegramId);
+
     } catch (err) {
-      console.log("⚠️ Erro remover:", err.message);
+      console.log("⚠️ erro ao remover:", user.telegramId);
     }
   }
 }
