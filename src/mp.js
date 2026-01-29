@@ -9,7 +9,7 @@ const mp = axios.create({
   }
 });
 
-export async function criarPagamento(userId) {
+export async function criarAssinatura(userId) {
   try {
     const response = await mp.post("/checkout/preferences", {
       items: [
