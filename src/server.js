@@ -3,6 +3,7 @@ import mercadopago from "mercadopago";
 import bot from "./bot.js";
 import prisma from "./prisma.js";
 import { removeExpiredUsers } from "./jobs/removeExpired.js";
+import { CONFIG } from "./config.js";
 
 console.log("🚀 SERVER.JS CARREGADO");
 
@@ -14,7 +15,7 @@ app.use(express.json());
 // =========================
 
 mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN
+  access_token: CONFIG.MP_ACCESS_TOKEN
 });
 
 // =========================
@@ -33,8 +34,8 @@ app.post("/webhook", async (req, res) => {
     }
 
     const payment = await mercadopago.payment.findById(paymentId);
-
     const status = payment.body.status;
+
     console.log("💰 STATUS:", status);
 
     if (status !== "approved") {
@@ -55,13 +56,13 @@ app.post("/webhook", async (req, res) => {
     // =========================
 
     const expira = new Date();
-    expira.setDate(expira.getDate() + 30); // 30 dias
+    expira.setDate(expira.getDate() + CONFIG.DIAS_VIP);
 
     await prisma.assinatura.upsert({
-      where: { telegramId },
+      where: { telegramId: telegramId.toString() },
       update: { expiraEm: expira },
       create: {
-        telegramId,
+        telegramId: telegramId.toString(),
         expiraEm: expira
       }
     });
@@ -69,14 +70,12 @@ app.post("/webhook", async (req, res) => {
     console.log("📅 Assinatura salva até:", expira);
 
     // =========================
-    // GERAR LINK DO GRUPO
+    // LINK ÚNICO DO GRUPO
     // =========================
 
     const invite = await bot.createChatInviteLink(
-      process.env.GROUP_ID,
-      {
-        member_limit: 1
-      }
+      CONFIG.GROUP_ID,
+      { member_limit: 1 }
     );
 
     await bot.sendMessage(
@@ -98,11 +97,11 @@ app.post("/webhook", async (req, res) => {
 // SERVER
 // =========================
 
-const PORT = process.env.PORT || 8080;
+const PORT = CONFIG.PORT || 8080;
 
 app.listen(PORT, () => {
   console.log("🚀 Server rodando na porta", PORT);
 
-  // roda verificação de expirados
+  // remove expirados a cada 1 minuto
   setInterval(removeExpiredUsers, 60 * 1000);
 });
