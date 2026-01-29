@@ -49,7 +49,7 @@ app.post("/webhook", async (req, res) => {
       // =========================
 
       const expira = new Date();
-      expira.setMinutes(expira.getMinutes() + 1);
+      expira.setDate(expira.getDate() + 30); // assinatura 30 dias
 
       await prisma.assinatura.upsert({
         where: { telegramId },
