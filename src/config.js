@@ -14,7 +14,7 @@ export const CONFIG = {
   // =========================
   // ASSINATURA
   // =========================
-  VALOR_VIP: Number(process.env.VALOR_VIP || 29.9),
+  VALOR_VIP: Number(process.env.VALOR_VIP || 29.90),
   DIAS_VIP: Number(process.env.DIAS_VIP || 30),
 
   // =========================
