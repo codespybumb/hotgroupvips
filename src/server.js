@@ -12,38 +12,29 @@ app.listen(CONFIG.PORT, () => {
   console.log("🚀 Server rodando na porta", CONFIG.PORT)
 })
 app.post('/webhook', async (req, res) => {
-  try {
-    const paymentId = req.body?.data?.id
-    if (!paymentId) {
-      return res.sendStatus(200)
-    }
+  let payment
 
-    const payment = await mercadopago.payment.get(paymentId)
+  // 🔵 MODO TESTE
+  if (process.env.NODE_ENV === 'test') {
+    console.log('🧪 MODO TESTE ATIVO')
 
-    if (payment.body.status === 'approved') {
-      const telegramId = payment.body.metadata?.telegramId
-
-      if (!telegramId) {
-        console.error('❌ telegramId não encontrado no pagamento')
-        return res.sendStatus(200)
+    payment = {
+      status: 'approved',
+      metadata: {
+        telegramId: '8405584249' // TEU TELEGRAM ID
       }
-
-      // adiciona no grupo
-      await bot.addChatMember(GRUPO_VIP_ID, telegramId)
-
-      // mensagem de confirmação
-      await bot.sendMessage(
-        telegramId,
-        '✅ Pagamento aprovado! Você foi adicionado ao grupo VIP.'
-      )
-
-      console.log('🔥 Usuário adicionado ao grupo:', telegramId)
     }
-
-    res.sendStatus(200)
-  } catch (err) {
-    console.error('❌ Erro no webhook:', err)
-    res.sendStatus(500)
-    console.log('🔥 WEBHOOK RECEBIDO:', req.body)
+  } else {
+    // 🔴 PRODUÇÃO (Mercado Pago real)
+    const paymentId = req.body?.data?.id
+    payment = await mp.payment.findById(paymentId)
   }
+
+  console.log('💰 PAYMENT:', payment)
+
+  if (payment.status === 'approved') {
+    await liberarAcesso(payment)
+  }
+
+  res.sendStatus(200)
 })
