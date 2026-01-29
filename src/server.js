@@ -9,7 +9,7 @@ const app = express()
 app.use(express.json())
 
 app.listen(CONFIG.PORT, () => {
-  console.log(":rocket: Server rodando na porta", CONFIG.PORT)
+  console.log("🚀 Server rodando na porta", CONFIG.PORT)
 })
 app.post('/webhook', async (req, res) => {
   try {
@@ -24,7 +24,7 @@ app.post('/webhook', async (req, res) => {
       const telegramId = payment.body.metadata?.telegramId
 
       if (!telegramId) {
-        console.error(':x: telegramId não encontrado no pagamento')
+        console.error('❌ telegramId não encontrado no pagamento')
         return res.sendStatus(200)
       }
 
@@ -34,16 +34,16 @@ app.post('/webhook', async (req, res) => {
       // mensagem de confirmação
       await bot.sendMessage(
         telegramId,
-        ':white_check_mark: Pagamento aprovado! Você foi adicionado ao grupo VIP.'
+        '✅ Pagamento aprovado! Você foi adicionado ao grupo VIP.'
       )
 
-      console.log(':fire: Usuário adicionado ao grupo:', telegramId)
+      console.log('🔥 Usuário adicionado ao grupo:', telegramId)
     }
 
     res.sendStatus(200)
   } catch (err) {
-    console.error(':x: Erro no webhook:', err)
+    console.error('❌ Erro no webhook:', err)
     res.sendStatus(500)
-    console.log(':fire: WEBHOOK RECEBIDO:', req.body)
+    console.log('🔥 WEBHOOK RECEBIDO:', req.body)
   }
 })
