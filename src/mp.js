@@ -17,21 +17,22 @@ mercadopago.configure({
 
 export async function criarPagamento(telegramId) {
   try {
-    console.log("🔥 criarAssinatura chamada com:", telegramId);
+    console.log("🔥 criarPagamento chamada com:", telegramId);
 
     const preapproval = {
       reason: "Assinatura VIP Telegram",
+
       auto_recurring: {
         frequency: 1,
         frequency_type: "months",
-        transaction_amount: Number(CONFIG.VALOR_VIP) || 29.9
-        currency_id: "BRL"
+        transaction_amount: Number(CONFIG.VALOR_VIP) || 29.9,
+        currency_id: "BRL",
+        start_date: new Date().toISOString()
       },
 
-      back_url: CONFIG.BACK_URL || "https://google.com", // pode trocar depois
+      back_url: CONFIG.BACK_URL || "https://google.com",
 
-      payer_email: CONFIG.EMAIL_PADRAO || "teste@teste.com", 
-      // MP exige email — depois podemos melhorar isso
+      payer_email: CONFIG.EMAIL_PADRAO || "teste@teste.com",
 
       metadata: {
         telegramId: telegramId.toString()
@@ -43,12 +44,12 @@ export async function criarPagamento(telegramId) {
     console.log("🔥 assinatura criada:", response.body.init_point);
 
     return {
-      link: response.body.init_point,
+      init_point: response.body.init_point,
       id: response.body.id
     };
 
   } catch (err) {
-    console.error("❌ ERRO CRIAR ASSINATURA:", err);
+    console.error("❌ ERRO CRIAR ASSINATURA:", err.response?.data || err);
     throw err;
   }
 }
