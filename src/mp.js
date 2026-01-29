@@ -8,14 +8,10 @@ mercadopago.configure({
 });
 
 // =========================
-// FUNÇÃO DATA MP (BRASIL)
+// FUNÇÃO DATA MP
 // =========================
 function mpDate() {
-  const d = new Date();
-
-  // força timezone Brasil
-  d.setHours(d.getHours() - 3);
-
+  const d = new Date(Date.now() - 3 * 60 * 60 * 1000); // UTC-3 fixo
   return d.toISOString().replace("Z", "-03:00");
 }
 
@@ -37,9 +33,8 @@ export async function criarPagamento(telegramId) {
         start_date: mpDate()
       },
 
-      back_url: CONFIG.BACK_URL || "https://google.com",
-
-      payer_email: CONFIG.EMAIL_PADRAO || "teste@teste.com",
+      payer_email: CONFIG.EMAIL_PADRAO,
+      back_url: CONFIG.BACK_URL,
 
       metadata: {
         telegramId: telegramId.toString()
@@ -48,15 +43,15 @@ export async function criarPagamento(telegramId) {
 
     const response = await mercadopago.preapproval.create(preapproval);
 
-    console.log("🔥 Assinatura criada:", response.body.init_point);
+    console.log("🔥 ASSINATURA CRIADA:", response.body.init_point);
 
     return {
-      init_point: response.body.init_point,
+      link: response.body.init_point,
       id: response.body.id
     };
 
   } catch (err) {
-    console.error("❌ ERRO CRIAR ASSINATURA:", err.response?.data || err);
+    console.error("❌ ERRO MP:", err.response?.data || err);
     throw err;
   }
 }
