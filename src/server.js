@@ -2,7 +2,6 @@ import express from "express";
 import MercadoPago from "mercadopago";
 
 import bot from "./bot.js";
-import prisma from "./prisma.js";
 import { removeExpiredUsers } from "./jobs/removeExpired.js";
 import {
   PORT,
