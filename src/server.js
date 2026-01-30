@@ -1,25 +1,35 @@
 import express from "express";
+import MercadoPago from "mercadopago";
+
 import bot from "./bot.js";
+import prisma from "./prisma.js";
+
 import { removeExpiredUsers } from "./jobs/removeExpired.js";
-import { PORT } from "./config.js";
+import {
+  PORT,
+  MP_ACCESS_TOKEN,
+  GROUP_ID,
+  VIP_DAYS
+} from "./config.js";
 
 console.log("🚀 SERVER.JS CARREGADO");
 
+// =========================
+// APP
+// =========================
 const app = express();
 app.use(express.json());
 
 // =========================
-// Mercado Pago config
+// MERCADO PAGO CLIENT (SDK NOVO)
 // =========================
-
-mercadopago.configure({
-  access_token: CONFIG.MP_ACCESS_TOKEN
+const mp = new MercadoPago({
+  accessToken: MP_ACCESS_TOKEN
 });
 
 // =========================
 // WEBHOOK
 // =========================
-
 app.post("/webhook", async (req, res) => {
   try {
     console.log("🔥 WEBHOOK RECEBIDO:", req.body);
@@ -31,8 +41,8 @@ app.post("/webhook", async (req, res) => {
       return res.sendStatus(200);
     }
 
-    const payment = await mercadopago.payment.findById(paymentId);
-    const status = payment.body.status;
+    const payment = await mp.payment.get(paymentId);
+    const status = payment.status;
 
     console.log("💰 STATUS:", status);
 
@@ -40,7 +50,7 @@ app.post("/webhook", async (req, res) => {
       return res.sendStatus(200);
     }
 
-    const telegramId = payment.body.metadata?.telegramId;
+    const telegramId = payment.metadata?.telegramId;
 
     if (!telegramId) {
       console.log("⚠️ Sem telegramId no metadata");
@@ -52,9 +62,8 @@ app.post("/webhook", async (req, res) => {
     // =========================
     // SALVAR ASSINATURA
     // =========================
-
     const expira = new Date();
-    expira.setDate(expira.getDate() + CONFIG.DIAS_VIP);
+    expira.setDate(expira.getDate() + VIP_DAYS);
 
     await prisma.assinatura.upsert({
       where: { telegramId: telegramId.toString() },
@@ -70,9 +79,8 @@ app.post("/webhook", async (req, res) => {
     // =========================
     // LINK ÚNICO DO GRUPO
     // =========================
-
     const invite = await bot.createChatInviteLink(
-      CONFIG.GROUP_ID,
+      GROUP_ID,
       { member_limit: 1 }
     );
 
@@ -94,10 +102,9 @@ app.post("/webhook", async (req, res) => {
 // =========================
 // SERVER
 // =========================
-
 app.listen(PORT, () => {
   console.log("🚀 Server rodando na porta", PORT);
 
-  // remove expirados a cada 1 minuto
+  // limpa usuários expirados a cada 1 min
   setInterval(removeExpiredUsers, 60 * 1000);
 });
