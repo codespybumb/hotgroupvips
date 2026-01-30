@@ -1,31 +1,31 @@
-// src/mp.js
-import fetch from "node-fetch";
-import { MP_ACCESS_TOKEN, VIP_PRICE } from "./config.js";
+import mercadopago from "mercadopago";
+import { MP_ACCESS_TOKEN, VIP_PRICE, BASE_URL } from "./config.js";
 
-export async function criarPagamento({ telegramId }) {
-  const res = await fetch("https://api.mercadopago.com/v1/payments", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
-      "Content-Type": "application/json"
+mercadopago.configure({
+  access_token: MP_ACCESS_TOKEN
+});
+
+export async function criarPagamento(telegramId) {
+  const payment = await mercadopago.payment.create({
+    transaction_amount: VIP_PRICE,
+    description: "Acesso VIP Telegram",
+    payment_method_id: "pix",
+    payer: {
+      email: `${telegramId}@vip.telegram`
     },
-    body: JSON.stringify({
-      transaction_amount: VIP_PRICE,
-      description: "Acesso VIP Telegram",
-      payment_method_id: "pix",
-      metadata: { telegramId }
-    })
+    notification_url: `${BASE_URL}/webhook`,
+    metadata: { telegramId }
   });
 
-  const data = await res.json();
+  const tx =
+    payment.body.point_of_interaction?.transaction_data;
 
-  if (!data.point_of_interaction) {
-    throw new Error("Erro ao criar pagamento MP");
+  if (!tx) {
+    throw new Error("PIX não gerado");
   }
 
   return {
-    qrCode: data.point_of_interaction.transaction_data.qr_code,
-    qrCodeBase64:
-      data.point_of_interaction.transaction_data.qr_code_base64
+    qrBase64: tx.qr_code_base64,
+    qrCode: tx.qr_code
   };
 }

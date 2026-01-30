@@ -1,13 +1,21 @@
-// src/server.js
 import express from "express";
-import fetch from "node-fetch";
+import mercadopago from "mercadopago";
 
 import bot from "./bot.js";
 import { vipUsers } from "./vipStore.js";
-import { PORT, MP_ACCESS_TOKEN, GROUP_ID, VIP_DAYS } from "./config.js";
+import {
+  PORT,
+  GROUP_ID,
+  VIP_DAYS,
+  MP_ACCESS_TOKEN
+} from "./config.js";
 import { removeExpiredUsers } from "./jobs/removeExpired.js";
 
 console.log("🚀 SERVER.JS CARREGADO");
+
+mercadopago.configure({
+  access_token: MP_ACCESS_TOKEN
+});
 
 const app = express();
 app.use(express.json());
@@ -17,39 +25,35 @@ app.post("/webhook", async (req, res) => {
     const paymentId = req.body?.data?.id;
     if (!paymentId) return res.sendStatus(200);
 
-    const payment = await fetch(
-      `https://api.mercadopago.com/v1/payments/${paymentId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${MP_ACCESS_TOKEN}`
-        }
-      }
-    ).then(r => r.json());
+    const payment =
+      await mercadopago.payment.findById(paymentId);
 
-    if (payment.status !== "approved") {
+    if (payment.body.status !== "approved") {
       return res.sendStatus(200);
     }
 
-    const telegramId = payment.metadata?.telegramId;
+    const telegramId =
+      payment.body.metadata?.telegramId;
+
     if (!telegramId) return res.sendStatus(200);
 
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + VIP_DAYS);
+    const expires = new Date();
+    expires.setDate(expires.getDate() + VIP_DAYS);
+    vipUsers.set(telegramId, { expires });
 
-    vipUsers.set(telegramId, { expiresAt });
-
-    const invite = await bot.createChatInviteLink(GROUP_ID, {
-      member_limit: 1
-    });
+    const invite =
+      await bot.createChatInviteLink(GROUP_ID, {
+        member_limit: 1
+      });
 
     await bot.sendMessage(
       telegramId,
-      `✅ Pagamento aprovado!\n\nEntre no grupo VIP:\n${invite.invite_link}`
+      `✅ Pagamento aprovado!\n\nEntre no VIP:\n${invite.invite_link}`
     );
 
     res.sendStatus(200);
   } catch (err) {
-    console.error("❌ Webhook erro:", err);
+    console.error("Webhook erro:", err);
     res.sendStatus(500);
   }
 });
