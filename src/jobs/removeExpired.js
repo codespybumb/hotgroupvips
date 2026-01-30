@@ -1,6 +1,6 @@
 import prisma from "../prisma.js"
 import bot from "../bot.js"
-import { CONFIG } from "./config.js"
+import { CONFIG } from "../config.js"
 
 export async function removeExpiredUsers() {
   try {
