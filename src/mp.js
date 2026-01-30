@@ -1,5 +1,5 @@
 import { MercadoPagoConfig, PreApproval } from "mercadopago"
-import { MP_ACCESS_TOKEN, BASE_URL, VIP_PRICE } from "./config.js"
+import { CONFIG } from "./config.js"
 
 const client = new MercadoPagoConfig({
   accessToken: MP_ACCESS_TOKEN
