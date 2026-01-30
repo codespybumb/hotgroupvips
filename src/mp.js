@@ -1,33 +1,30 @@
-// src/mp.js
-
 import pkg from "mercadopago"
 import { CONFIG } from "./config.js"
 
 const { MercadoPagoConfig, PreApproval } = pkg
 
-const client = new MercadoPagoConfig({
+const mpClient = new MercadoPagoConfig({
   accessToken: CONFIG.MP_ACCESS_TOKEN
 })
 
-const preapproval = new PreApproval(client)
+const preapproval = new PreApproval(mpClient)
 
-// ========================
-// CRIAR ASSINATURA
-// ========================
-
-export async function criarAssinatura(telegramId) {
+export async function criarAssinatura(telegramId, email) {
   try {
     const assinatura = await preapproval.create({
       body: {
         reason: "Acesso VIP Telegram",
+        external_reference: telegramId.toString(),
+        payer_email: email,
+
         auto_recurring: {
           frequency: 1,
           frequency_type: "months",
           transaction_amount: CONFIG.VIP_PRICE,
           currency_id: "BRL"
         },
-        back_url: CONFIG.BASE_URL + "/sucesso",
-        external_reference: telegramId.toString(),
+
+        back_url: CONFIG.BASE_URL,
         status: "pending"
       }
     })

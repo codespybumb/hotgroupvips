@@ -8,6 +8,8 @@ console.log("🤖 BOT.JS CARREGADO")
 // INICIA BOT
 // ======================
 
+const emailTemp = new Map()
+
 const bot = new TelegramBot(CONFIG.BOT_TOKEN, {
   polling: true
 })
