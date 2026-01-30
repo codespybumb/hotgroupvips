@@ -1,6 +1,5 @@
 import bot from "../bot.js"
 import { GROUP_ID } from "../config.js"
-import prisma from "../prisma.js"
 
 export async function removeExpiredUsers() {
   const expirados = await prisma.subscription.findMany({
