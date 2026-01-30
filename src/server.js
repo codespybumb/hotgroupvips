@@ -1,48 +1,36 @@
 import express from "express";
-import bot from "./bot.js";
-import { GROUP_ID, PORT } from "./config.js";
+import bodyParser from "body-parser";
+import TelegramBot from "node-telegram-bot-api";
+import { config } from "./config.js";
 
 const app = express();
-app.use(express.json());
+app.use(bodyParser.json());
 
-console.log("🚀 SERVER.JS CARREGADO");
+const bot = new TelegramBot(config.BOT_TOKEN);
 
 app.post("/webhook", async (req, res) => {
   try {
     const data = req.body;
 
-    console.log("🔔 WEBHOOK MP:", data);
+    if (data.type === "preapproval") {
+      const status = data.data.status;
+      const userId = data.data.external_reference;
 
-    const telegramId = data.external_reference;
-    const status = data.status;
-
-    if (!telegramId) return res.sendStatus(200);
-
-    // PAGAMENTO ATIVO
-    if (status === "authorized" || status === "active") {
-      const invite = await bot.createChatInviteLink(GROUP_ID, {
-        member_limit: 1
-      });
-
-      await bot.sendMessage(
-        telegramId,
-        `✅ Assinatura confirmada!\n\nEntre no grupo VIP:\n${invite.invite_link}`
-      );
-    }
-
-    // CANCELADO / PAUSADO
-    if (status === "cancelled" || status === "paused") {
-      await bot.banChatMember(GROUP_ID, telegramId);
-      await bot.unbanChatMember(GROUP_ID, telegramId);
+      if (status === "authorized") {
+        await bot.sendMessage(
+          config.GROUP_ID,
+          `✅ Assinatura ativada para usuário ${userId}`
+        );
+      }
     }
 
     res.sendStatus(200);
   } catch (e) {
-    console.error("❌ ERRO WEBHOOK:", e);
+    console.error("Webhook erro:", e);
     res.sendStatus(500);
   }
 });
 
-app.listen(PORT, () =>
-  console.log(`🚀 Server rodando na porta ${PORT}`)
-);
+app.listen(8080, () => {
+  console.log("🚀 Server rodando na porta 8080");
+});
