@@ -4,15 +4,24 @@ import { criarAssinatura } from "./mp.js";
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
+console.log("🤖 BOT.JS CARREGADO");
+
+bot.onText(/\/start/, (msg) => {
+  bot.sendMessage(
+    msg.chat.id,
+    "🔥 Bem-vindo!\n\nDigite /vip para assinar o grupo VIP."
+  );
+});
+
 bot.onText(/\/vip/, async (msg) => {
   const chatId = msg.chat.id;
 
   try {
-    const link = await criarAssinatura({ telegramId: chatId });
+    const link = await criarAssinatura(chatId);
 
-    bot.sendMessage(
+    await bot.sendMessage(
       chatId,
-      `🔥 *ASSINATURA VIP*\n\nAcesse o link para assinar:\n${link}`,
+      `💳 *Assinatura VIP*\n\nClique para assinar:\n${link}`,
       { parse_mode: "Markdown" }
     );
   } catch (err) {
