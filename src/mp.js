@@ -1,33 +1,58 @@
-import mercadopago from "mercadopago";
-import { config } from "./config.js";
+import mercadopago from "mercadopago"
+import { CONFIG } from "./config.js"
+
+console.log("💳 MP.JS CARREGADO")
+
+// ========================
+// CONFIGURA SDK
+// ========================
 
 mercadopago.configure({
-  access_token: config.MP_ACCESS_TOKEN
-});
+  access_token: CONFIG.MP_ACCESS_TOKEN
+})
 
-export async function criarAssinatura(userId) {
+
+// ========================
+// CRIAR ASSINATURA RECORRENTE
+// ========================
+
+export async function criarAssinatura(telegramId) {
   try {
-    const response = await mercadopago.preapproval.create({
-      reason: "VIP Telegram",
-      external_reference: String(userId),
-      payer_email: config.EMAIL_PADRAO,
 
-      auto_recurring: {
-        frequency: 1,
-        frequency_type: "months",
-        transaction_amount: config.VALOR_VIP,
-        currency_id: "BRL"
-      },
+    console.log("👤 Criando assinatura para:", telegramId)
 
-      back_url: "https://google.com",
-      notification_url: `${config.BASE_URL}/webhook`,
-      status: "pending"
-    });
+    const assinatura = await mercadopago.preapproval.create({
+      body: {
+        reason: "Acesso VIP Telegram",
+        auto_recurring: {
+          frequency: 1,
+          frequency_type: "months",
+          transaction_amount: CONFIG.VIP_PRICE,
+          currency_id: "BRL"
+        },
 
-    return response.body.init_point;
+        payer_email: `${telegramId}@vip-bot.local`,
+
+        back_url: `${CONFIG.BASE_URL}/sucesso`,
+
+        notification_url: `${CONFIG.BASE_URL}/webhook`,
+
+        external_reference: telegramId.toString()
+      }
+    })
+
+    console.log("✅ Assinatura criada:", assinatura.body.id)
+
+    return {
+      id: assinatura.body.id,
+      url: assinatura.body.init_point
+    }
 
   } catch (err) {
-    console.error("MP ERRO REAL:", err.response?.data || err);
-    throw new Error("Erro ao gerar assinatura");
+
+    console.error("❌ ERRO MP:", err?.response?.data || err.message)
+
+    throw new Error("Erro ao gerar assinatura MP")
   }
 }
+
