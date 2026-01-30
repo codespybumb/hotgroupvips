@@ -1,4 +1,5 @@
 import pkg from "mercadopago"
+import { CONFIG } from "./config.js"
 
 const { MercadoPagoConfig, PreApproval } = pkg
 
