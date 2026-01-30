@@ -1,85 +1,31 @@
-import axios from "axios"
-import * as config from "./config.js"
+// src/mp.js
+import fetch from "node-fetch";
+import { MP_ACCESS_TOKEN, VIP_PRICE } from "./config.js";
 
-// =========================
-// CLIENTE MERCADO PAGO
-// =========================
+export async function criarPagamento({ telegramId }) {
+  const res = await fetch("https://api.mercadopago.com/v1/payments", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      transaction_amount: VIP_PRICE,
+      description: "Acesso VIP Telegram",
+      payment_method_id: "pix",
+      metadata: { telegramId }
+    })
+  });
 
-const mp = axios.create({
-  baseURL: "https://api.mercadopago.com",
-  headers: {
-    Authorization: `Bearer ${config.MP_ACCESS_TOKEN}`,
-    "Content-Type": "application/json",
-  },
-})
+  const data = await res.json();
 
-// =========================
-// CRIAR PAGAMENTO
-// =========================
-
-export async function criarPagamento({ userId }) {
-  try {
-    const preference = {
-      items: [
-        {
-          title: "Acesso VIP Telegram",
-          quantity: 1,
-          unit_price: config.VIP_PRICE,
-          currency_id: "BRL",
-        },
-      ],
-      metadata: {
-        telegram_id: userId,
-      },
-      external_reference: String(userId),
-      notification_url: `${config.BASE_URL}/webhook/mp`,
-      auto_return: "approved",
-    }
-
-    const res = await mp.post("/checkout/preferences", preference)
-
-    return {
-      id: res.data.id,
-      link: res.data.init_point,
-    }
-  } catch (err) {
-    console.error("❌ Erro MP:", err.response?.data || err.message)
-    throw new Error("Erro ao gerar pagamento")
+  if (!data.point_of_interaction) {
+    throw new Error("Erro ao criar pagamento MP");
   }
-}
 
-// =========================
-// PROCESSAR WEBHOOK
-// =========================
-
-export async function processarWebhook(paymentId) {
-  try {
-    const res = await mp.get(`/v1/payments/${paymentId}`)
-    const payment = res.data
-
-    if (payment.status !== "approved") {
-      return null
-    }
-
-    const telegramId = payment.metadata.telegram_id
-    if (!telegramId) {
-      throw new Error("Pagamento sem telegram_id")
-    }
-
-    const agora = new Date()
-    const expiraEm = new Date(
-      agora.getTime() + config.VIP_DAYS * 24 * 60 * 60 * 1000
-    )
-
-    return {
-      telegramId,
-      paymentId: payment.id,
-      status: payment.status,
-      paidAt: agora,
-      expiresAt: expiraEm,
-    }
-  } catch (err) {
-    console.error("❌ Erro webhook MP:", err.response?.data || err.message)
-    throw err
-  }
+  return {
+    qrCode: data.point_of_interaction.transaction_data.qr_code,
+    qrCodeBase64:
+      data.point_of_interaction.transaction_data.qr_code_base64
+  };
 }

@@ -1,47 +1,42 @@
+// src/server.js
 import express from "express";
-import MercadoPago from "mercadopago";
+import fetch from "node-fetch";
 
 import bot from "./bot.js";
+import { vipUsers } from "./vipStore.js";
+import { PORT, MP_ACCESS_TOKEN, GROUP_ID, VIP_DAYS } from "./config.js";
 import { removeExpiredUsers } from "./jobs/removeExpired.js";
-import {
-  PORT,
-  MP_ACCESS_TOKEN,
-  GROUP_ID,
-  VIP_DAYS
-} from "./config.js";
 
 console.log("🚀 SERVER.JS CARREGADO");
 
 const app = express();
 app.use(express.json());
 
-// 🔥 CLIENTE MP (SDK NOVO)
-const mp = new MercadoPago({
-  accessToken: MP_ACCESS_TOKEN
-});
-
-// =========================
-// WEBHOOK
-// =========================
 app.post("/webhook", async (req, res) => {
   try {
     const paymentId = req.body?.data?.id;
     if (!paymentId) return res.sendStatus(200);
 
-    const payment = await mp.payment.get(paymentId);
-    if (payment.status !== "approved") return res.sendStatus(200);
+    const payment = await fetch(
+      `https://api.mercadopago.com/v1/payments/${paymentId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${MP_ACCESS_TOKEN}`
+        }
+      }
+    ).then(r => r.json());
+
+    if (payment.status !== "approved") {
+      return res.sendStatus(200);
+    }
 
     const telegramId = payment.metadata?.telegramId;
     if (!telegramId) return res.sendStatus(200);
 
-    const expira = new Date();
-    expira.setDate(expira.getDate() + VIP_DAYS);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + VIP_DAYS);
 
-    await prisma.assinatura.upsert({
-      where: { telegramId: telegramId.toString() },
-      update: { expiraEm: expira },
-      create: { telegramId: telegramId.toString(), expiraEm: expira }
-    });
+    vipUsers.set(telegramId, { expiresAt });
 
     const invite = await bot.createChatInviteLink(GROUP_ID, {
       member_limit: 1
