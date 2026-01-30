@@ -1,72 +1,31 @@
-import express from "express"
-import { MercadoPagoConfig, PreApproval } from "mercadopago"
-import prisma from "./prisma.js"
-import bot from "./bot.js"
-import { removeExpiredUsers } from "./jobs/removeExpired.js"
-import {
-  PORT,
-  MP_ACCESS_TOKEN,
-  VIP_DAYS,
-  GROUP_ID
-} from "./config.js"
+import pkg from "mercadopago"
 
-console.log("🚀 SERVER.JS CARREGADO")
+const { MercadoPagoConfig, PreApproval } = pkg
 
-const app = express()
-app.use(express.json())
-
-const mpClient = new MercadoPagoConfig({
-  accessToken: MP_ACCESS_TOKEN
+const client = new MercadoPagoConfig({
+  accessToken: CONFIG.MP_ACCESS_TOKEN
 })
 
-const preapproval = new PreApproval(mpClient)
+const preapproval = new PreApproval(client)
 
 app.post("/webhook", async (req, res) => {
   try {
-    console.log("🔥 WEBHOOK:", req.body)
+    const id = req.body.data.id
 
-    const id = req.body?.data?.id
-    if (!id) return res.sendStatus(200)
+    const sub = await preapproval.get({ id })
 
-    const assinatura = await preapproval.get({ id })
-
-    if (assinatura.status !== "authorized") {
+    if (sub.status !== "authorized") {
       return res.sendStatus(200)
     }
 
-    const telegramId = assinatura.external_reference
-    if (!telegramId) return res.sendStatus(200)
+    const telegramId = sub.external_reference
 
-    const expira = new Date()
-    expira.setDate(expira.getDate() + VIP_DAYS)
-
-    await prisma.assinatura.upsert({
-      where: { telegramId },
-      update: { expiraEm: expira },
-      create: { telegramId, expiraEm: expira }
-    })
-
-    const invite = await bot.createChatInviteLink(GROUP_ID, {
-      member_limit: 1
-    })
-
-    await bot.sendMessage(
-      telegramId,
-      `✅ Assinatura ativa!\nEntre no grupo:\n${invite.invite_link}`
-    )
-
-    console.log("✅ VIP liberado:", telegramId)
+    // liberar VIP aqui
 
     res.sendStatus(200)
 
-  } catch (err) {
-    console.error("Webhook erro:", err)
+  } catch (e) {
+    console.error(e)
     res.sendStatus(500)
   }
-})
-
-app.listen(PORT, () => {
-  console.log("🚀 Server rodando na porta", PORT)
-
-  setInterval(removeExpiredUsers, 60 * 1000)
 })

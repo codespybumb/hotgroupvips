@@ -1,11 +1,19 @@
-import { MercadoPagoConfig, PreApproval } from "mercadopago"
+// src/mp.js
+
+import pkg from "mercadopago"
 import { CONFIG } from "./config.js"
 
+const { MercadoPagoConfig, PreApproval } = pkg
+
 const client = new MercadoPagoConfig({
-  accessToken: MP_ACCESS_TOKEN
+  accessToken: CONFIG.MP_ACCESS_TOKEN
 })
 
 const preapproval = new PreApproval(client)
+
+// ========================
+// CRIAR ASSINATURA
+// ========================
 
 export async function criarAssinatura(telegramId) {
   try {
@@ -15,19 +23,19 @@ export async function criarAssinatura(telegramId) {
         auto_recurring: {
           frequency: 1,
           frequency_type: "months",
-          transaction_amount: VIP_PRICE,
+          transaction_amount: CONFIG.VIP_PRICE,
           currency_id: "BRL"
         },
-        back_url: BASE_URL,
-        status: "pending",
-        external_reference: String(telegramId)
+        back_url: CONFIG.BASE_URL + "/sucesso",
+        external_reference: telegramId.toString(),
+        status: "pending"
       }
     })
 
     return assinatura.init_point
 
   } catch (err) {
-    console.error("❌ ERRO MP:", err)
+    console.error("❌ Erro MP assinatura:", err)
     throw new Error("Erro ao gerar assinatura")
   }
 }
