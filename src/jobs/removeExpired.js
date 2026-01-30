@@ -1,77 +1,34 @@
-import TelegramBot from "node-telegram-bot-api"
-import { CONFIG } from "./config.js"
-import { criarAssinatura } from "./mp.js"
+import prisma from "../prisma.js"
+import bot from "../bot.js"
+import { GROUP_ID } from "../config.js"
 
-console.log("🤖 BOT.JS CARREGADO")
-
-// ======================
-// INICIA BOT
-// ======================
-
-const bot = new TelegramBot(CONFIG.BOT_TOKEN, {
-  polling: true
-})
-
-console.log("🤖 BOT INICIALIZADO, POLLING ATIVO")
-
-// ======================
-// /start
-// ======================
-
-bot.onText(/\/start/, async (msg) => {
-
-  const chatId = msg.chat.id
-
-  await bot.sendMessage(chatId,
-`🔥 Bem-vindo ao VIP
-
-Use /vip para assinar acesso ao grupo exclusivo.
-
-Pagamento recorrente automático
-Cartão crédito/débito`
-  )
-
-})
-
-
-// ======================
-// /vip — gerar assinatura
-// ======================
-
-bot.onText(/\/vip/, async (msg) => {
-
-  const chatId = msg.chat.id
-  const telegramId = msg.from.id
-
+export async function removeExpiredUsers() {
   try {
+    const agora = new Date()
 
-    await bot.sendMessage(chatId, "⏳ Gerando assinatura...")
+    const expirados = await prisma.assinatura.findMany({
+      where: {
+        expiraEm: { lt: agora }
+      }
+    })
 
-    const assinatura = await criarAssinatura(telegramId)
+    for (const user of expirados) {
+      try {
+        await bot.banChatMember(GROUP_ID, Number(user.telegramId))
+        await bot.unbanChatMember(GROUP_ID, Number(user.telegramId))
 
-    await bot.sendMessage(chatId,
-`💎 Assinatura VIP
+        console.log("🚫 Removido:", user.telegramId)
 
-Valor: R$ ${CONFIG.VIP_PRICE}/mês
+        await prisma.assinatura.delete({
+          where: { telegramId: user.telegramId }
+        })
 
-Clique para pagar:
-${assinatura.url}`
-    )
+      } catch (e) {
+        console.log("⚠️ Falha remover:", user.telegramId)
+      }
+    }
 
   } catch (err) {
-
-    console.error(err)
-
-    await bot.sendMessage(chatId,
-      "❌ Erro ao gerar assinatura. Tente novamente."
-    )
+    console.error("Erro removeExpired:", err)
   }
-
-})
-
-
-// ======================
-// EXPORT BOT
-// ======================
-
-export default bot
+}
