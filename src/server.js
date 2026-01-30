@@ -1,64 +1,79 @@
 import express from "express";
-import mercadopago from "mercadopago";
-
 import bot from "./bot.js";
-import { vipUsers } from "./vipStore.js";
-import {
-  PORT,
-  GROUP_ID,
-  VIP_DAYS,
-  MP_ACCESS_TOKEN
-} from "./config.js";
-import { removeExpiredUsers } from "./jobs/removeExpired.js";
+import { PORT, GROUP_ID } from "./config.js";
+import { MercadoPagoConfig, Payment } from "mercadopago";
 
 console.log("🚀 SERVER.JS CARREGADO");
-
-mercadopago.configure({
-  access_token: MP_ACCESS_TOKEN
-});
 
 const app = express();
 app.use(express.json());
 
+// =========================
+// MERCADO PAGO CLIENT
+// =========================
+
+const mpClient = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN
+});
+
+const payment = new Payment(mpClient);
+
+// =========================
+// WEBHOOK MERCADO PAGO
+// =========================
+
 app.post("/webhook", async (req, res) => {
   try {
+    console.log("🔥 WEBHOOK RECEBIDO:", req.body);
+
     const paymentId = req.body?.data?.id;
-    if (!paymentId) return res.sendStatus(200);
-
-    const payment =
-      await mercadopago.payment.findById(paymentId);
-
-    if (payment.body.status !== "approved") {
+    if (!paymentId) {
+      console.log("⚠️ Webhook sem paymentId");
       return res.sendStatus(200);
     }
 
-    const telegramId =
-      payment.body.metadata?.telegramId;
+    const result = await payment.get({ id: paymentId });
 
-    if (!telegramId) return res.sendStatus(200);
+    if (result.status !== "approved") {
+      console.log("⏳ Pagamento ainda não aprovado");
+      return res.sendStatus(200);
+    }
 
-    const expires = new Date();
-    expires.setDate(expires.getDate() + VIP_DAYS);
-    vipUsers.set(telegramId, { expires });
+    const telegramId = result.metadata?.telegramId;
+    if (!telegramId) {
+      console.log("⚠️ Sem telegramId no metadata");
+      return res.sendStatus(200);
+    }
 
-    const invite =
-      await bot.createChatInviteLink(GROUP_ID, {
-        member_limit: 1
-      });
+    console.log("✅ Pagamento aprovado | Telegram:", telegramId);
+
+    // =========================
+    // LINK ÚNICO DO GRUPO
+    // =========================
+
+    const invite = await bot.createChatInviteLink(GROUP_ID, {
+      member_limit: 1
+    });
 
     await bot.sendMessage(
       telegramId,
-      `✅ Pagamento aprovado!\n\nEntre no VIP:\n${invite.invite_link}`
+      `🔥 *PAGAMENTO APROVADO!*\n\nEntre no grupo VIP:\n${invite.invite_link}`,
+      { parse_mode: "Markdown" }
     );
 
-    res.sendStatus(200);
+    console.log("📩 Link enviado para o usuário");
+
+    return res.sendStatus(200);
   } catch (err) {
-    console.error("Webhook erro:", err);
-    res.sendStatus(500);
+    console.error("❌ ERRO NO WEBHOOK:", err);
+    return res.sendStatus(500);
   }
 });
 
+// =========================
+// START SERVER
+// =========================
+
 app.listen(PORT, () => {
-  console.log("🚀 Server rodando na porta", PORT);
-  setInterval(removeExpiredUsers, 60 * 1000);
+  console.log(`🚀 Server rodando na porta ${PORT}`);
 });
