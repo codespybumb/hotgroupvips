@@ -70,5 +70,5 @@ const PORT = process.env.PORT || 8080
 
 app.listen(PORT, () => {
   console.log("🚀 Server rodando na porta", PORT)
-  setInterval(removeExpiredUsers, 60 * 1000)
+  setInterval(removeExpiredUsers, 60 * 60 * 1000)
 })
