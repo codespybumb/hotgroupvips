@@ -55,7 +55,7 @@ await bot.sendMessage(chatId,
 Valor: R$ ${CONFIG.VIP_PRICE}/mês
 
 Clique para pagar:
-${url}`
+${assinatura.url}
 )
 
   } catch (err) {
