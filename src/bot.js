@@ -8,8 +8,6 @@ console.log("🤖 BOT.JS CARREGADO")
 // INICIA BOT
 // ======================
 
-const emailTemp = new Map()
-
 const bot = new TelegramBot(CONFIG.BOT_TOKEN, {
   polling: true
 })
@@ -49,7 +47,11 @@ bot.onText(/\/vip/, async (msg) => {
 
     await bot.sendMessage(chatId, "⏳ Gerando assinatura...")
 
-    const assinatura = await criarAssinatura(telegramId)
+    const link = await criarAssinatura(telegramId)
+
+    if (!link) {
+      throw new Error("Link não retornado pelo MP")
+    }
 
     await bot.sendMessage(chatId,
 `💎 Assinatura VIP
@@ -57,12 +59,12 @@ bot.onText(/\/vip/, async (msg) => {
 Valor: R$ ${CONFIG.VIP_PRICE}/mês
 
 Clique para pagar:
-${assinatura.url}`
+${link}`
     )
 
   } catch (err) {
 
-    console.error(err)
+    console.error("Erro /vip:", err)
 
     await bot.sendMessage(chatId,
       "❌ Erro ao gerar assinatura. Tente novamente."
