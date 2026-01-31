@@ -53,6 +53,10 @@ app.post("/webhook", async (req, res) => {
 
       console.log("✅ VIP liberado:", telegramId)
     }
+    app.get("/webhook", (req, res) => {
+  res.send("Webhook OK")
+})
+
 
     res.sendStatus(200)
 
