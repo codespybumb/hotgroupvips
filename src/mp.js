@@ -9,13 +9,15 @@ const mpClient = new MercadoPagoConfig({
 
 const preapproval = new PreApproval(mpClient)
 
-export async function criarAssinatura(telegramId, email) {
+export async function criarAssinatura(telegramId) {
   try {
     const assinatura = await preapproval.create({
       body: {
         reason: "Acesso VIP Telegram",
         external_reference: telegramId.toString(),
-        payer_email: email,
+
+        // ✅ EMAIL FIXO AQUI
+        payer_email: "vip@seubot.com",
 
         auto_recurring: {
           frequency: 1,
