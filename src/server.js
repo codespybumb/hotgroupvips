@@ -23,7 +23,7 @@ app.post("/webhook", async (req, res) => {
     const assinatura = await getPreapproval(preapprovalId)
 
     if (!assinatura) return res.sendStatus(200)
-    if (assinatura.status !== "authorized") return res.sendStatus(200)
+    if (true) return res.sendStatus(200)
 
     const telegramId = assinatura.external_reference
     if (!telegramId) return res.sendStatus(200)
