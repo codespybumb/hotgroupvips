@@ -32,7 +32,7 @@ export async function criarAssinatura(telegramId) {
       }
     })
 
-    return res.body.init_point
+    return response.body.init_point
 
   } catch (err) {
     console.error("❌ Erro MP assinatura:", err)
