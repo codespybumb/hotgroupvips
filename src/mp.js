@@ -19,11 +19,6 @@ export async function criarAssinatura(telegramId) {
       payer_email: CONFIG.FIXED_PAYER_EMAIL,
       back_url: "https://google.com"
     })
-    
-export async function getPreapproval(id) {
-  const response = await mercadopago.preapproval.get(id)
-  return response.body
-}
 
     console.log("MP RESPONSE:", response.body)
 
