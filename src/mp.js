@@ -2,9 +2,6 @@
 import mercadopago from "mercadopago"
 import { CONFIG } from "./config.js"
 
-console.log("🔥 MP.JS CARREGADO")
-
-// SDK v1.x
 mercadopago.configure({
   access_token: CONFIG.MP_ACCESS_TOKEN
 })
@@ -12,30 +9,29 @@ mercadopago.configure({
 export async function criarAssinatura(telegramId) {
   try {
     const amount = Number(CONFIG.VIP_PRICE)
+
     if (!amount || isNaN(amount)) {
       throw new Error("VIP_PRICE inválido")
     }
 
+    // fallback automático se não tiver env
+    const email = CONFIG.FIXED_PAYER_EMAIL || "atributosflowlab@gmail.com"
+
     const res = await mercadopago.preapproval.create({
-      reason: "Assinatura VIP Telegram",
-      payer_email: CONFIG.FIXED_PAYER_EMAIL, // pode ser fixo
+      reason: "VIP Telegram",
+      payer_email: email,
       external_reference: telegramId.toString(),
-      back_url: CONFIG.SUCCESS_URL,          // url de retorno opcional
       status: "pending",
 
       auto_recurring: {
         frequency: 1,
-        frequency_type: "months",           // "days" | "months"
+        frequency_type: "months",
         transaction_amount: amount,
         currency_id: "BRL"
       }
     })
 
-    const link = res.body.init_point
-    if (!link) throw new Error("init_point ausente")
-
-    console.log("✅ Assinatura criada:", link)
-    return link
+    return res.body.init_point
 
   } catch (err) {
     console.error("❌ Erro MP assinatura:", err)
