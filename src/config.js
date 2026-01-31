@@ -4,7 +4,6 @@ export const CONFIG = {
     VIP_PRICE: Number(process.env.VIP_PRICE || 29.9),
   MP_ACCESS_TOKEN: process.env.MP_ACCESS_TOKEN,
   FIXED_PAYER_EMAIL: process.env.FIXED_PAYER_EMAIL
-
   BASE_URL: process.env.BASE_URL,
   PORT: Number(process.env.PORT || 8080)
 }
