@@ -1,36 +1,26 @@
-import mercadopago from "mercadopago"
+import prisma from "../prisma.js"
+import bot from "../bot.js"
 import { CONFIG } from "../config.js"
 
-mercadopago.configure({
-  access_token: CONFIG.MP_ACCESS_TOKEN
-})
+export async function removeExpiredUsers() {
 
-export async function criarAssinatura(telegramId) {
+  const agora = new Date()
 
-  const response = await mercadopago.preapproval.create({
-    reason: "VIP Telegram",
-
-    external_reference: String(telegramId), // 👈 ESSENCIAL
-
-    auto_recurring: {
-      frequency: 1,
-      frequency_type: "months",
-      transaction_amount: CONFIG.VIP_PRICE,
-      currency_id: "BRL"
-    },
-
-    payer_email: CONFIG.FIXED_PAYER_EMAIL,
-    back_url: "https://google.com"
+  const expirados = await prisma.assinatura.findMany({
+    where: {
+      expiraEm: { lt: agora }
+    }
   })
 
-  return {
-    url: response.body.init_point,
-    id: response.body.id
+  for (const user of expirados) {
+
+    await bot.banChatMember(CONFIG.GROUP_ID, Number(user.telegramId))
+    await bot.unbanChatMember(CONFIG.GROUP_ID, Number(user.telegramId))
+
+    await prisma.assinatura.delete({
+      where: { telegramId: user.telegramId }
+    })
+
+    console.log("🚫 Removido:", user.telegramId)
   }
-}
-
-
-export async function getPreapproval(id) {
-  const resp = await mercadopago.preapproval.get(id)
-  return resp.body
 }
