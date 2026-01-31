@@ -14,7 +14,7 @@ export async function removeExpiredUsers() {
 
   for (const user of expirados) {
 
-    await bot.banChatMember(CONFIG.GROUP_ID, Number(user.telegramId))
+    process.env.GROUP_ID
     await bot.unbanChatMember(CONFIG.GROUP_ID, Number(user.telegramId))
 
     await prisma.assinatura.delete({

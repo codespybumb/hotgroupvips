@@ -22,7 +22,11 @@ export async function criarAssinatura(telegramId) {
 
     console.log("MP RESPONSE:", response.body)
 
-    return response.body.init_point // 👈 ESSA LINHA
+    return {
+  url: response.body.init_point,
+  id: response.body.id
+}
+
   } catch (err) {
     console.error("❌ Erro MP assinatura:", err)
     throw new Error("Erro ao gerar assinatura")
