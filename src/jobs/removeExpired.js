@@ -1,5 +1,5 @@
 import mercadopago from "mercadopago"
-import { CONFIG } from "./config.js"
+import { CONFIG } from "../config.js"
 
 mercadopago.configure({
   access_token: CONFIG.MP_ACCESS_TOKEN
