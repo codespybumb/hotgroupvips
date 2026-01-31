@@ -23,10 +23,9 @@ export async function criarAssinatura(telegramId) {
     back_url: "https://google.com"
   })
 
-  return { response.body.init_point }  // 👈 ESSA LINHA
-  return {} response.body.id }
+  return { response.body.init_point
+   response.body.id }
   }
-}
 
 
 export async function getPreapproval(id) {
