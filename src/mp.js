@@ -16,17 +16,10 @@ if (!price || price <= 0) {
   throw new Error("VIP_PRICE inválido")
 }
 
-// ======================
-// CONFIG
-// ======================
-
 mercadopago.configure({
   access_token: MP_ACCESS_TOKEN
 })
 
-// ======================
-// ASSINATURA RECORRENTE
-// ======================
 
 export async function criarAssinatura(telegramId) {
   try {
