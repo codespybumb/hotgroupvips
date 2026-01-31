@@ -19,6 +19,7 @@ export async function criarAssinatura(telegramId) {
 
     const res = await mercadopago.preapproval.create({
       reason: "VIP Telegram",
+      back_url: "https://seusite.com/obrigado",
       payer_email: email,
       external_reference: telegramId.toString(),
       status: "pending",
