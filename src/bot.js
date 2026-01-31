@@ -47,7 +47,7 @@ bot.onText(/\/vip/, async (msg) => {
 
     await bot.sendMessage(chatId, "⏳ Gerando assinatura...")
 
-   const url = await criarAssinatura(telegramId)
+   const assinatura = await criarAssinatura(telegramId)
 
 await bot.sendMessage(chatId,
 `💎 Assinatura VIP
@@ -55,7 +55,7 @@ await bot.sendMessage(chatId,
 Valor: R$ ${CONFIG.VIP_PRICE}/mês
 
 Clique para pagar:
-${assinatura.url}
+${assinatura.url}`
 )
 
   } catch (err) {
