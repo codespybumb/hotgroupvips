@@ -9,8 +9,7 @@ export async function criarAssinatura(telegramId) {
 
   const response = await mercadopago.preapproval.create({
     reason: "VIP Telegram",
-
-    external_reference: String(telegramId), // 👈 ESSENCIAL
+    external_reference: String(telegramId),
 
     auto_recurring: {
       frequency: 1,
@@ -20,15 +19,8 @@ export async function criarAssinatura(telegramId) {
     },
 
     payer_email: CONFIG.FIXED_PAYER_EMAIL,
-    back_url: "https://google.com"
+    back_url: CONFIG.BACK_URL
   })
 
-  return { response.body.init_point
-   response.body.id }
-  }
-
-
-export async function getPreapproval(id) {
-  const resp = await mercadopago.preapproval.get(id)
-  return resp.body
+  return response.body.init_point
 }

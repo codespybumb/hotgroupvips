@@ -47,20 +47,16 @@ bot.onText(/\/vip/, async (msg) => {
 
     await bot.sendMessage(chatId, "⏳ Gerando assinatura...")
 
-    const link = await criarAssinatura(telegramId)
+   const url = await criarAssinatura(telegramId)
 
-    if (!link) {
-      throw new Error("Link não retornado pelo MP")
-    }
-
-    await bot.sendMessage(chatId,
+await bot.sendMessage(chatId,
 `💎 Assinatura VIP
 
 Valor: R$ ${CONFIG.VIP_PRICE}/mês
 
 Clique para pagar:
-${link}`
-    )
+${url}`
+)
 
   } catch (err) {
 
