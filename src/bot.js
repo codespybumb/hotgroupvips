@@ -22,7 +22,8 @@ bot.onText(/\/start/, async (msg) => {
 
   const chatId = msg.chat.id
 
-  await bot.sendMessage(chatId,
+  await bot.sendMessage(
+    chatId,
 `🔥 Bem-vindo ao VIP
 
 Use /vip para assinar acesso ao grupo exclusivo.
@@ -33,9 +34,8 @@ Cartão crédito/débito`
 
 })
 
-
 // ======================
-// /vip — gerar assinatura
+// /vip — gerar assinatura REAL
 // ======================
 
 bot.onText(/\/vip/, async (msg) => {
@@ -47,25 +47,50 @@ bot.onText(/\/vip/, async (msg) => {
 
     await bot.sendMessage(chatId, "⏳ Gerando assinatura...")
 
-   const assinatura = await criarAssinatura(telegramId)
+    const assinatura = await criarAssinatura(telegramId)
 
-await bot.sendMessage(chatId,
+    await bot.sendMessage(
+      chatId,
 `💎 Assinatura VIP
 
 Valor: R$ ${CONFIG.VIP_PRICE}/mês
 
 Clique para pagar:
 ${assinatura.url}`
-)
+    )
 
   } catch (err) {
 
     console.error("Erro /vip:", err)
 
-    await bot.sendMessage(chatId,
+    await bot.sendMessage(
+      chatId,
       "❌ Erro ao gerar assinatura. Tente novamente."
     )
   }
+
+})
+
+// ======================
+// /vipadm — LIBERAÇÃO FAKE (TESTE)
+// ======================
+
+bot.onText(/\/admtest/, async (msg) => {
+
+  const chatId = msg.chat.id
+
+  const LINK_DO_GRUPO = "https://t.me/SEU_GRUPO_AQUI"
+
+  await bot.sendMessage(
+    chatId,
+`✅ *Acesso VIP liberado (TESTE)*
+
+🎉 Liberação simulada com sucesso.
+
+👉 Entre no grupo VIP:
+${LINK_DO_GRUPO}`,
+    { parse_mode: "Markdown" }
+  )
 
 })
 
