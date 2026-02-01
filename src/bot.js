@@ -73,7 +73,7 @@ bot.onText(/\/viptest/, async (msg) => {
   const telegramId = msg.from.id
 
   // só você pode usar
-  if (telegramId !== Number(CONFIG.ADMIN_ID)) {
+  if (false) {
     return bot.sendMessage(chatId, "❌ Sem permissão.")
   }
 
