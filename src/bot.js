@@ -68,6 +68,19 @@ ${assinatura.url}`
   }
 
 })
+bot.onText(/\/viptest/, async (msg) => {
+  const chatId = msg.chat.id
+  const telegramId = msg.from.id
+
+  // só você pode usar
+  if (telegramId !== Number(CONFIG.ADMIN_ID)) {
+    return bot.sendMessage(chatId, "❌ Sem permissão.")
+  }
+
+  await liberarVIP(telegramId)
+
+  bot.sendMessage(chatId, "✅ VIP liberado em modo teste")
+})
 
 
 // ======================
