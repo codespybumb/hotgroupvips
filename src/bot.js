@@ -43,23 +43,31 @@ bot.onText(/\/vip/, async (msg) => {
   const chatId = msg.chat.id
   const telegramId = msg.from.id
 
-  bot.onText(/\/vipadm/, (msg) => {
-  const chatId = msg.chat.id
+  try {
 
-  const LINK_DO_GRUPO = "https://t.me/SEU_GRUPO_AQUI"
+    await bot.sendMessage(chatId, "⏳ Gerando assinatura...")
 
-  bot.sendMessage(
-    chatId,
-    `✅ *Acesso VIP liberado (TESTE)*
+   const assinatura = await criarAssinatura(telegramId)
 
-🎉 Liberação simulada com sucesso.
+await bot.sendMessage(chatId,
+`💎 Assinatura VIP
 
-👉 Entre no grupo VIP:
-${LINK_DO_GRUPO}`,
-    { parse_mode: "Markdown" }
-  )
+Valor: R$ ${CONFIG.VIP_PRICE}/mês
+
+Clique para pagar:
+${assinatura.url}`
+)
+
+  } catch (err) {
+
+    console.error("Erro /vip:", err)
+
+    await bot.sendMessage(chatId,
+      "❌ Erro ao gerar assinatura. Tente novamente."
+    )
+  }
+
 })
-
 
 // ======================
 // EXPORT BOT
