@@ -6,29 +6,26 @@ mercadopago.configure({
 })
 
 export async function criarAssinatura(telegramId) {
-  try {
-    const response = await mercadopago.preapproval.create({
-      reason: "VIP Telegram",
-      external_reference: String(telegramId),
-      auto_recurring: {
-        frequency: 1,
-        frequency_type: "months",
-        transaction_amount: CONFIG.VIP_PRICE,
-        currency_id: "BRL"
-      },
-      payer_email: CONFIG.FIXED_PAYER_EMAIL,
-      back_url: "https://google.com"
-    })
+  const res = await mercadopago.preapproval.create({
+    reason: "VIP Telegram",
+    external_reference: String(telegramId),
+    payer_email: CONFIG.FIXED_PAYER_EMAIL,
+    auto_recurring: {
+      frequency: 1,
+      frequency_type: "months",
+      transaction_amount: CONFIG.VIP_PRICE,
+      currency_id: "BRL"
+    },
+    back_url: "https://google.com"
+  })
 
-    console.log("MP RESPONSE:", response.body)
-
-    return {
-  url: response.body.init_point,
-  id: response.body.id
+  return {
+    url: res.body.init_point,
+    id: res.body.id
+  }
 }
 
-  } catch (err) {
-    console.error("❌ Erro MP assinatura:", err)
-    throw new Error("Erro ao gerar assinatura")
-  }
+export async function getPreapproval(preapprovalId) {
+  const res = await mercadopago.preapproval.get(preapprovalId)
+  return res.body
 }
