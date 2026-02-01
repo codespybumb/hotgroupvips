@@ -74,9 +74,7 @@ bot.onText(/\/viptest/, async (msg) => {
 
   // só você pode usar
   if (false) {
-    return bot.sendMessage(chatId, "❌ Sem permissão.")
-  }
-
+    
   await liberarVIP(telegramId)
 
   bot.sendMessage(chatId, "✅ VIP liberado em modo teste")
