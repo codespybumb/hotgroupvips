@@ -1,35 +1,35 @@
 import express from "express"
 import bot from "./bot.js"
 import prisma from "./prisma.js"
-import { removeExpiredUsers } from "./jobs/removeExpired.js"
-
-console.log("🚀 SERVER.JS CARREGADO")
 
 const app = express()
 app.use(express.json())
 
-// =====================
-// WEBHOOK MERCADO PAGO
-// =====================
+app.get("/", (_, res) => {
+  res.send("OK")
+})
 
 app.post("/webhook", async (req, res) => {
   try {
-    console.log("🔥 WEBHOOK RECEBIDO:", req.body)
+    console.log("🔥 WEBHOOK:", JSON.stringify(req.body))
 
     const preapprovalId = req.body?.data?.id
     if (!preapprovalId) return res.sendStatus(200)
 
     const { getPreapproval } = await import("./mp.js")
     const assinatura = await getPreapproval(preapprovalId)
-
     if (!assinatura) return res.sendStatus(200)
-    if (assinatura.status !== "authorized") return res.sendStatus(200)
+
+    if (assinatura.status !== "authorized") {
+      console.log("⏳ Status ignorado:", assinatura.status)
+      return res.sendStatus(200)
+    }
 
     const telegramId = assinatura.external_reference
     if (!telegramId) return res.sendStatus(200)
 
     const expira = new Date()
-    expira.setDate(expira.getDate() + Number(process.env.VIP_DAYS || 30))
+    expira.setDate(expira.getDate() + 30)
 
     await prisma.assinatura.upsert({
       where: { telegramId },
@@ -48,12 +48,15 @@ app.post("/webhook", async (req, res) => {
     )
 
     console.log("✅ VIP LIBERADO:", telegramId)
-
-    return res.sendStatus(200)
+    res.sendStatus(200)
 
   } catch (err) {
-    console.error("❌ WEBHOOK ERRO (IGNORADO):", err)
-    return res.sendStatus(200) // ⚠️ NUNCA 500
+    console.error("❌ WEBHOOK ERRO:", err)
+    res.sendStatus(500)
   }
 })
 
+const PORT = process.env.PORT || 8080
+app.listen(PORT, () => {
+  console.log("🚀 Server rodando na porta", PORT)
+})

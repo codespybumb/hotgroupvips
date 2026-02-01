@@ -2,14 +2,14 @@
   "name": "telegram-vip-bot",
   "version": "1.0.0",
   "type": "module",
-  "main": "src/indexr.js",
+  "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "postinstall": "prisma generate"
+    "generate": "prisma generate",
+    "migrate": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
-    "axios": "^1.7.7",
     "express": "^4.21.2",
     "mercadopago": "^1.5.17",
     "node-telegram-bot-api": "^0.66.0",
