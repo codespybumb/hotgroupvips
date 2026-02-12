@@ -8,8 +8,10 @@ datasource db {
 }
 
 model Assinatura {
-  id         Int      @id @default(autoincrement())
-  telegramId String   @unique
-  expiraEm   DateTime
-  createdAt  DateTime @default(now())
+  id         Int       @id @default(autoincrement())
+  telegramId String    @unique
+  plano      String
+  expiraEm   DateTime?
+  createdAt  DateTime  @default(now())
 }
+
