@@ -100,7 +100,7 @@ ${assinatura.url}`
 
       const pagamento = await criarPagamentoSemestral(
         telegramId,
-        149.90
+        1
       )
 
       await bot.sendMessage(chatId,
@@ -119,7 +119,7 @@ ${pagamento.url}`
 
       const pagamento = await criarPagamentoVitalicio(
         telegramId,
-        297.00
+        1
       )
 
       await bot.sendMessage(chatId,
