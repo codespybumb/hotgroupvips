@@ -8,7 +8,7 @@ export const CONFIG = {
 
   MP_ACCESS_TOKEN: process.env.MP_ACCESS_TOKEN,
 
-  VIP_PRICE: Number(process.env.VIP_PRICE || 1.0),
+  VIP_PRICE: Number(process.env.VIP_PRICE || 9.90),
 
   FIXED_PAYER_EMAIL:
     process.env.FIXED_PAYER_EMAIL || "atributosflowlab@gmail.com"

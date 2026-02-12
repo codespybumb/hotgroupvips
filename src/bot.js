@@ -52,10 +52,10 @@ bot.onText(/\/vip/, async (msg) => {
         { text: "💳 Mensal - R$ 9,90", callback_data: "mensal" }
       ],
       [
-        { text: "📆 6 Meses - R$ 149,90", callback_data: "semestral" }
+        { text: "📆 6 Meses - R$ 49,90", callback_data: "semestral" }
       ],
       [
-        { text: "👑 Vitalício - R$ 297,00", callback_data: "vitalicio" }
+        { text: "👑 Vitalício - R$ 99,00", callback_data: "vitalicio" }
       ]
     ]
   }
@@ -100,14 +100,14 @@ ${assinatura.url}`
 
       const pagamento = await criarPagamentoSemestral(
         telegramId,
-        1
+        49.90
       )
 
       await bot.sendMessage(chatId,
 `📆 Plano 6 Meses
 
 Pagamento único
-R$ 149,90
+R$ 49,90
 
 Clique para pagar:
 ${pagamento.url}`
@@ -119,7 +119,7 @@ ${pagamento.url}`
 
       const pagamento = await criarPagamentoVitalicio(
         telegramId,
-        1
+        99.90
       )
 
       await bot.sendMessage(chatId,
@@ -128,7 +128,7 @@ ${pagamento.url}`
 Acesso para sempre
 PIX ou Cartão
 
-R$ 297,00
+R$ 99,00
 
 Clique para pagar:
 ${pagamento.url}`
