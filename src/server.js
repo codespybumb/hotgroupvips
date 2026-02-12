@@ -56,37 +56,44 @@ app.post("/webhook", async (req, res) => {
     if (!id) return res.sendStatus(200)
 
     // =====================================
-    // 🔵 ASSINATURA MENSAL (preapproval)
-    // =====================================
-    if (tipo === "preapproval") {
+// 🔵 ASSINATURA MENSAL (preapproval)
+// =====================================
+if (tipo === "subscription_preapproval") {
 
-      const { getPreapproval } = await import("./mp.js")
-      const assinatura = await getPreapproval(id)
-      if (!assinatura) return res.sendStatus(200)
+  const { getPreapproval } = await import("./mp.js")
+  const assinatura = await getPreapproval(id)
+  if (!assinatura) return res.sendStatus(200)
 
-      if (assinatura.status !== "authorized") {
-        console.log("⏳ Status ignorado:", assinatura.status)
-        return res.sendStatus(200)
-      }
+  if (assinatura.status !== "authorized") {
+    console.log("⏳ Status ignorado:", assinatura.status)
+    return res.sendStatus(200)
+  }
 
-      const telegramId = assinatura.external_reference
-      if (!telegramId) return res.sendStatus(200)
+  const telegramId = assinatura.external_reference
+  if (!telegramId) return res.sendStatus(200)
 
-      const expira = new Date()
-      expira.setDate(expira.getDate() + 30)
+  const expira = new Date()
+  expira.setDate(expira.getDate() + 30)
 
-      await prisma.assinatura.upsert({
-        where: { telegramId },
-        update: {
-          plano: "mensal",
-          expiraEm: expira
-        },
-        create: {
-          telegramId,
-          plano: "mensal",
-          expiraEm: expira
-        }
-      })
+  await prisma.assinatura.upsert({
+    where: { telegramId },
+    update: {
+      plano: "mensal",
+      expiraEm: expira
+    },
+    create: {
+      telegramId,
+      plano: "mensal",
+      expiraEm: expira
+    }
+  })
+
+  await liberarAcesso(telegramId)
+
+  console.log("✅ MENSAL LIBERADO:", telegramId)
+  return res.sendStatus(200)
+}
+
 
       await liberarAcesso(telegramId)
 
