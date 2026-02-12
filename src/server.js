@@ -5,6 +5,44 @@ import prisma from "./prisma.js"
 const app = express()
 app.use(express.json())
 
+// =============================
+// GARANTIR TABELA NO BANCO
+// =============================
+
+async function garantirTabela() {
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "Assinatura" (
+      id SERIAL PRIMARY KEY,
+      "telegramId" TEXT UNIQUE NOT NULL,
+      "plano" TEXT DEFAULT 'mensal',
+      "expiraEm" TIMESTAMP,
+      "createdAt" TIMESTAMP DEFAULT NOW()
+    );
+  `)
+
+  console.log("✅ Tabela Assinatura verificada/criada")
+}
+
+async function start() {
+  await garantirTabela()
+
+  async function start() {
+  await garantirTabela()
+
+  const PORT = process.env.PORT || 8080
+  app.listen(PORT, () => {
+    console.log("🚀 Server rodando na porta", PORT)
+  })
+}
+
+start()
+
+}
+
+start()
+
+
+
 app.get("/", (_, res) => {
   res.send("OK")
 })
