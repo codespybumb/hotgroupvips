@@ -6,9 +6,8 @@ const app = express()
 app.use(express.json())
 
 // =============================
-// GARANTIR TABELA NO BANCO
+// GARANTIR TABELA
 // =============================
-
 async function garantirTabela() {
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Assinatura" (
@@ -23,25 +22,7 @@ async function garantirTabela() {
   console.log("✅ Tabela Assinatura verificada/criada")
 }
 
-async function start() {
-  await garantirTabela()
-
-  async function start() {
-  await garantirTabela()
-
-  const PORT = process.env.PORT || 8080
-  app.listen(PORT, () => {
-    console.log("🚀 Server rodando na porta", PORT)
-  })
-}
-
-start()
-
-}
-
-start()
-
-
+garantirTabela()
 
 app.get("/", (_, res) => {
   res.send("OK")
@@ -55,45 +36,38 @@ app.post("/webhook", async (req, res) => {
     const id = req.body?.data?.id
     if (!id) return res.sendStatus(200)
 
-    // =====================================
-// 🔵 ASSINATURA MENSAL (preapproval)
-// =====================================
-if (tipo === "subscription_preapproval") {
+    // =============================
+    // 🔵 ASSINATURA MENSAL
+    // =============================
+    if (tipo === "subscription_preapproval") {
 
-  const { getPreapproval } = await import("./mp.js")
-  const assinatura = await getPreapproval(id)
-  if (!assinatura) return res.sendStatus(200)
+      const { getPreapproval } = await import("./mp.js")
+      const assinatura = await getPreapproval(id)
+      if (!assinatura) return res.sendStatus(200)
 
-  if (assinatura.status !== "authorized") {
-    console.log("⏳ Status ignorado:", assinatura.status)
-    return res.sendStatus(200)
-  }
+      if (assinatura.status !== "authorized") {
+        console.log("⏳ Status ignorado:", assinatura.status)
+        return res.sendStatus(200)
+      }
 
-  const telegramId = assinatura.external_reference
-  if (!telegramId) return res.sendStatus(200)
+      const telegramId = assinatura.external_reference
+      if (!telegramId) return res.sendStatus(200)
 
-  const expira = new Date()
-  expira.setDate(expira.getDate() + 30)
+      const expira = new Date()
+      expira.setDate(expira.getDate() + 30)
 
-  await prisma.assinatura.upsert({
-    where: { telegramId },
-    update: {
-      plano: "mensal",
-      expiraEm: expira
-    },
-    create: {
-      telegramId,
-      plano: "mensal",
-      expiraEm: expira
-    }
-  })
-
-  await liberarAcesso(telegramId)
-
-  console.log("✅ MENSAL LIBERADO:", telegramId)
-  return res.sendStatus(200)
-}
-
+      await prisma.assinatura.upsert({
+        where: { telegramId },
+        update: {
+          plano: "mensal",
+          expiraEm: expira
+        },
+        create: {
+          telegramId,
+          plano: "mensal",
+          expiraEm: expira
+        }
+      })
 
       await liberarAcesso(telegramId)
 
@@ -101,9 +75,9 @@ if (tipo === "subscription_preapproval") {
       return res.sendStatus(200)
     }
 
-    // =====================================
-    // 🟢 PAGAMENTO ÚNICO (6 meses / vitalício)
-    // =====================================
+    // =============================
+    // 🟢 PAGAMENTO ÚNICO
+    // =============================
     if (tipo === "payment") {
 
       const { getPayment } = await import("./mp.js")
@@ -120,7 +94,7 @@ if (tipo === "subscription_preapproval") {
 
       const titulo = payment.additional_info?.items?.[0]?.title
 
-      // 🔹 6 MESES
+      // 6 MESES
       if (titulo === "VIP 6 Meses") {
 
         const expira = new Date()
@@ -140,11 +114,10 @@ if (tipo === "subscription_preapproval") {
         })
 
         await liberarAcesso(telegramId)
-
         console.log("✅ 6 MESES LIBERADO:", telegramId)
       }
 
-      // 🔹 VITALÍCIO
+      // VITALÍCIO
       if (titulo === "VIP Vitalício") {
 
         await prisma.assinatura.upsert({
@@ -161,7 +134,6 @@ if (tipo === "subscription_preapproval") {
         })
 
         await liberarAcesso(telegramId)
-
         console.log("✅ VITALÍCIO LIBERADO:", telegramId)
       }
 
@@ -176,12 +148,11 @@ if (tipo === "subscription_preapproval") {
   }
 })
 
-
-// =====================================
-// FUNÇÃO PARA LIBERAR ACESSO
-// =====================================
-
+// =============================
+// LIBERAR ACESSO
+// =============================
 async function liberarAcesso(telegramId) {
+
   const invite = await bot.createChatInviteLink(
     process.env.GROUP_ID,
     { member_limit: 1 }
@@ -193,5 +164,7 @@ async function liberarAcesso(telegramId) {
   )
 }
 
-
-// =====================================
+const PORT = process.env.PORT || 8080
+app.listen(PORT, () => {
+  console.log("🚀 Server rodando na porta", PORT)
+})
